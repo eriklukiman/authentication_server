@@ -8,8 +8,7 @@
         "php": "^8.4",
         "league/oauth2-server": "^8.5",
         "nyholm/psr7": "^1.8",
-        "eriklukiman/framework": "dev-master",
-        "league/uri": "^6.0"
+        "eriklukiman/framework": "dev-master"
     },
     "repositories": [
         {
