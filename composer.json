@@ -1,0 +1,34 @@
+{
+    "name": "steelytoe/authentication-server",
+    "description": "OAuth 2.0 Authorization Server",
+    "type": "project",
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require": {
+        "php": "^8.4",
+        "league/oauth2-server": "^8.5",
+        "nyholm/psr7": "^1.8",
+        "eriklukiman/framework": "dev-master",
+        "league/uri": "^6.0"
+    },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/eriklukiman/fwlukiman"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Lukiman\\AuthServer\\Modules\\": "Modules/",
+            "Lukiman\\AuthServer\\Models\\": "Models/",
+            "Lukiman\\AuthServer\\Libraries\\": "Libraries/",
+            "Lukiman\\AuthServer\\Config\\": "config/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Erik",
+            "email": "erik.lukiman@gmail.com"
+        }
+    ]
+}

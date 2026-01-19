@@ -1,0 +1,15 @@
+composer.lock
+vendor
+.idea
+log/logfile*.log
+includes/config.php
+.DS_Store
+
+.git-branches.toml
+.neoconf.json
+.vscode/tasks.json
+
+reports/*
+config/Env.php
+# Ignore all files in config that have two extensions like .staging.php
+config/*.*.php
