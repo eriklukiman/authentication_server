@@ -2,28 +2,29 @@
 
 namespace Lukiman\AuthServer\Modules;
 
-use Lukiman\Cores\Controller;
+use Lukiman\AuthServer\Libraries\BaseController;
 use Lukiman\AuthServer\Libraries\AuthServerFactory;
 use Lukiman\AuthServer\Libraries\Repositories\UserRepository;
 use Nyholm\Psr7\Response;
 use League\OAuth2\Server\Exception\OAuthServerException;
 
-class Authorize extends Controller
+class Authorize extends BaseController
 {
     public function do_Index()
     {
         $server = AuthServerFactory::create();
         $response = new Response();
+        $request = $this->psrRequest;
 
         try {
             // Validate the HTTP request and return an AuthorizationRequest object.
-            $authRequest = $server->validateAuthorizationRequest($this->request);
+            $authRequest = $server->validateAuthorizationRequest($request);
             $userRepository = new UserRepository();
 
             $username = '';
 
-            if ($this->request->getMethod() === 'POST') {
-                $body = $this->request->getParsedBody();
+            if ($request->getMethod() === 'POST') {
+                $body = $request->getParsedBody();
                 
                 // Retrieve username and password
                 $username = $body['username'] ?? '';
@@ -44,8 +45,7 @@ class Authorize extends Controller
                     return $server->completeAuthorizationRequest($authRequest, $response);
                 }
                 
-                $response->getBody()->write('Invalid credentials. Please try again.');
-                return $response;
+                $error = 'Invalid credentials';
             }
             
             // If GET or invalid login: show login/approval UI. 

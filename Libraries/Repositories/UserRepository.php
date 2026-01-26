@@ -13,6 +13,11 @@ class UserRepository implements UserRepositoryInterface
     {
         $userModel = new User();
         $rows = $userModel->getData(['userUsername' => $username]);
+
+        if ($rows->count() == 0) {
+            return null;
+        }
+
         $record = $rows->next('array');
 
         if (!$record) {
