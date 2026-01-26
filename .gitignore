@@ -13,3 +13,4 @@ reports/*
 config/Env.php
 # Ignore all files in config that have two extensions like .staging.php
 config/*.*.php
+__pycache__

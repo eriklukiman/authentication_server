@@ -85,11 +85,16 @@ if (!empty($fullPath) && $fullPath !== '/') {
              echo $retVal;
         }
 
-    } catch (ExceptionBase $e) {
-        if (!headers_sent()) header('HTTP/1.0 500 Internal Server Error');
-        echo $e->getMessage();
-    } catch (\Throwable $e) {
-        if (!headers_sent()) header('HTTP/1.0 500 Internal Server Error');
+    } catch (\Throwable | ExceptionBase $e) {
+        if (!headers_sent()) {
+            $httpCode = 500;
+            $reflection = new \ReflectionClass($e);
+            
+            if ($reflection->hasMethod('getHttpCode')) {
+                $httpCode = $e->getHttpCode();
+            }
+            http_response_code($httpCode);
+        }
         echo $e->getMessage();
     }
 } else {
