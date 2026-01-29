@@ -24,22 +24,17 @@ class Callback extends Controller
             return "<h1>Callback Error</h1><p>No authorization code received.</p>";
         }
 
-        return "
-            <h1>Authorization Successful!</h1>
-            <p>Authorization code received. Use this code to exchange for an access token.</p>
-            <p><strong>Code:</strong> <code>$code</code></p>
-            <p><strong>State:</strong> $state</p>
-            <hr>
-            <h3>Next Step: Exchange Code for Token</h3>
-            <p>Run this command to exchange the code for an access token:</p>
-            <pre style='background: #f4f4f4; padding: 10px; border-radius: 5px;'>
-curl -X POST http://localhost:8080/access_token \\
-  -d \"grant_type=authorization_code\" \\
-  -d \"client_id=testclient\" \\
-  -d \"client_secret=testsecret\" \\
-  -d \"redirect_uri=http://localhost:8080/callback\" \\
-  -d \"code=$code\"
-            </pre>
-        ";
+        $hint = "curl -X POST http://localhost:8080/access_token -d grant_type=authorization_code -d client_id={{client}}";
+        $hint.= " -d client_secret={{secret}}";
+        $hint.= " -d redirect_uri=http://localhost:8080/callback";
+        $hint.= " -d code=CODE_RECEIVED_FROM_CALLBACK";
+        header('Content-type: application/json');
+        return json_encode([
+            'message' => 'Authorization code received successfully.',
+            'code' => $code,
+            'state' => $state,
+            'next_step' => 'Use the authorization code to request an access token.',
+            'curl_example' => $hint
+        ], JSON_PRETTY_PRINT);
     }
 }

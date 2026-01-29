@@ -6,14 +6,19 @@
     "prefer-stable": true,
     "require": {
         "php": "^8.4",
+        "eriklukiman/framework": "dev-master",
         "league/oauth2-server": "^8.5",
         "nyholm/psr7": "^1.8",
-        "eriklukiman/framework": "dev-master"
+        "rakit/validation": "dev-master"
     },
     "repositories": [
         {
             "type": "vcs",
             "url": "https://github.com/eriklukiman/fwlukiman"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/eriklukiman/validation"
         }
     ],
     "autoload": {

@@ -94,8 +94,15 @@ if (!empty($fullPath) && $fullPath !== '/') {
                 $httpCode = $e->getHttpCode();
             }
             http_response_code($httpCode);
+            header('Content-Type: application/json');
         }
-        echo $e->getMessage();
+        echo json_encode([
+            'status' => [
+                'error' => true,
+                'errorCode' => $e->getCode(),
+                'message' => $e->getMessage()
+            ]
+        ]);
     }
 } else {
     echo "Welcome to Auth Server";
