@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS app_clients (
+    apclId VARCHAR(80) NOT NULL PRIMARY KEY,
+    apclName VARCHAR(255) NOT NULL,
+    apclMachineId VARCHAR(255) NULL COMMENT "Machine ID for non-confidential clients",
+    apclCreatedTime DATETIME DEFAULT CURRENT_TIMESTAMP,
+    apclCreatedUserId VARCHAR(150) NOT NULL DEFAULT '',
+    apclUpdatedTime DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    apclUpdatedUserId VARCHAR(150) NOT NULL DEFAULT '',
+    UNIQUE KEY (apclName)
+);
