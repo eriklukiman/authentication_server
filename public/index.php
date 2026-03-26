@@ -36,8 +36,10 @@ if (!empty($fullPath) && $fullPath !== '/') {
     
     // Normalize path to StudlyCaps for class names
     foreach ($path as $k => $v) {
-        $path[$k] = str_replace(' ', '', ucwords(str_replace('_', ' ', strtolower($v))));
-    }
+		$path[$k] = preg_replace_callback('/(\_[a-z])/', function ($word) {
+			return strtoupper($word[1]);
+		}, ucwords(strtolower($v)));
+	}
     
     $class = implode('\\', $path); 
     
