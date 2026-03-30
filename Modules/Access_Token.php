@@ -7,7 +7,7 @@ use Lukiman\AuthServer\Libraries\AuthServerFactory;
 use Nyholm\Psr7\Response;
 use League\OAuth2\Server\Exception\OAuthServerException;
 
-class AccessToken extends BaseController
+class Access_Token extends BaseController
 {
     public function do_Index()
     {
