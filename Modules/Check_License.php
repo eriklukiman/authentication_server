@@ -41,6 +41,21 @@ class Check_License extends BaseApiModule {
             throw new ValidationErrorException('Invalid client_id', 400);
         }
 
+        // Check if client is expired
+        if (!empty($clientData['apclExpiredTime']) || $clientData['apclIsExpired'] == 0) {
+            $expiredTime = strtotime($clientData['apclExpiredTime']);
+            if (time() > $expiredTime) {
+                Logger::info('Client is expired: ' . $clientId);
+                $appClientModel->update($clientId, [
+                    'apclIsExpired' => 1
+                ]);
+                throw new AuthorizationRejectedException('Client is expired', 400);
+            }
+        } else if ($clientData['apclIsExpired'] == 1) {
+            Logger::info('Client is expired: ' . $clientId);
+            throw new AuthorizationRejectedException('Client is expired', 400);
+        }
+
         // Check if machineId is null, then insert and return valid
         if (empty($clientData['apclMachineId'])) {
             Logger::info('Machine ID is null, updating with new machine ID: ' . $machineId);
