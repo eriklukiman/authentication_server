@@ -1,0 +1,2 @@
+ALTER TABLE app_clients ADD COLUMN apclExpiredTime DATETIME NULL COMMENT "Expiration time for the client, if null then the client is not expired" AFTER apclMachineId;
+ALTER TABLE app_clients ADD COLUMN apclIsExpired TINYINT(1) NOT NULL DEFAULT 0 COMMENT "Indicates whether the client is expired or not" AFTER apclExpiredTime;
