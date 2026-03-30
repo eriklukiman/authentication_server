@@ -3,6 +3,9 @@ RewriteEngine On
 # Installation directory
 #RewriteBase .
 
+# Enable Authorization header
+SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+
 # Protect hidden files from being viewed
 <Files .*>
 	Order Deny,Allow
