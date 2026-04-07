@@ -8,6 +8,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../config/app.php';
 
 use Lukiman\AuthServer\Models\AppClient;
+use Lukiman\AuthServer\Models\Client;
 
 define("KEY_DIR", ROOT_PATH . "/keys");
 
@@ -25,6 +26,7 @@ try {
 
     // Generate a new client ID by randomize string with 40 characters length
     $clientId = bin2hex(random_bytes(20));
+    $clientSecret = bin2hex(random_bytes(40));
 
     // Generate public and private key pair and save to the directory "keys/{ $clientId }" 
     //      with the name "private.pem" and "public.pem"
@@ -66,6 +68,14 @@ try {
     $appClientModel->insert([
         'apclId' => $clientId,
         'apclName' => $name,
+    ]);
+
+    $clientModel = new Client();
+    $clientModel->insert([
+        'clntId'        => $clientId,
+        'clntSecret'    => $clientSecret,
+        'clntName'      => $name,
+        'clntRedirectUri' => 'wish-phototagging://oauth/callback',
     ]);
 
 } catch (Throwable $e) {

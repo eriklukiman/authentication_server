@@ -16,3 +16,4 @@ config/*.*.php
 __pycache__
 
 keys
+images

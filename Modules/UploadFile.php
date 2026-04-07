@@ -2,52 +2,12 @@
 
 namespace Lukiman\AuthServer\Modules;
 
-use League\OAuth2\Server\Exception\OAuthServerException;
-use Lukiman\AuthServer\Libraries\Repositories\NullAccessTokenRepository;
-use League\OAuth2\Server\ResourceServer;
-use Lukiman\AuthServer\Libraries\BaseApiModule;
-use Lukiman\Cores\Exception\PermissionDeniedException;
+use Lukiman\AuthServer\Libraries\Exceptions\UploadException;
+use Lukiman\AuthServer\Libraries\M2MBase;
 use Lukiman\Cores\Exception\ServerErrorException;
 use Psr\Http\Message\UploadedFileInterface;
-use Psr\Http\Message\ServerRequestInterface;
 
-class Upload_File extends BaseApiModule {
-
-    private ServerRequestInterface $psrRequest;
-
-    public function __construct()
-    {
-        parent::__construct();
-        $psr17Factory = new \Nyholm\Psr7\Factory\Psr17Factory();
-        $creator = new \Nyholm\Psr7Server\ServerRequestCreator(
-            $psr17Factory,
-            $psr17Factory,
-            $psr17Factory,
-            $psr17Factory
-        );
-        $this->psrRequest = $creator->fromGlobals();
-    }
-
-    public function beforeExecute(): void
-    {
-        try {
-
-            parent::beforeExecute();
-
-            $resourceServer = new ResourceServer(
-                new NullAccessTokenRepository(),
-                'file://' . __DIR__ . '/../public.key'
-            );
-
-            $this->psrRequest = $resourceServer
-                    ->validateAuthenticatedRequest($this->psrRequest);
-        } catch (OAuthServerException $e) {
-            throw new PermissionDeniedException('OAuth Unauthorized: ' . $e->getMessage());
-        }
-        catch (\Exception $e) {
-            throw new PermissionDeniedException('Unauthorized: ' . $e->getMessage());
-        }
-    }
+class UploadFile extends M2MBase {
 
     public function do_Index($param) {
         $method = strtolower($this->psrRequest->getMethod());
@@ -69,7 +29,16 @@ class Upload_File extends BaseApiModule {
             throw new ServerErrorException('Invalid parameter', 400);
         }
 
-        $baseDir = '/images/';
+        $baseDir = UPLOAD_FILE_DIR;
+
+        if (file_exists($baseDir) && !is_dir($baseDir)) {
+            throw new ServerErrorException('Upload path is not a directory', 500);
+        }
+
+        if (!file_exists($baseDir) && !mkdir($baseDir, 0777, true) && !is_dir($baseDir)) {
+            throw new ServerErrorException('Failed to create upload directory', 500);
+        }
+
         $maxSize = 6 * 1024 * 1024;
         $allowedTypes = ['image/jpeg', 'image/jpeg', 'image/png', 'image/gif'];
         $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
@@ -95,9 +64,8 @@ class Upload_File extends BaseApiModule {
             $extension = $clientExtension;
         }
 
-        $usedDir = rtrim(__DIR__ . '/' . trim($baseDir, '/'), '/') . '/';
         if ($file->getError() !== UPLOAD_ERR_OK) {
-            throw new ServerErrorException('File upload error', 400);
+            throw new UploadException($file->getError());
         }
         if (($file->getSize() ?? 0) > $maxSize) {
             throw new ServerErrorException('File size exceeds limit', 400);
@@ -108,12 +76,14 @@ class Upload_File extends BaseApiModule {
         $filename = $this->randomString(40) . '.' . $extension;
         $filename = basename($filename);
 
-        $targetDir = $usedDir . ($path === '' ? '' : $path . '/');
+        $targetDir = $baseDir . ($path === '' ? '' : $path . '/');
         $fullPath = $targetDir . $filename;
         $urlPath = $this->urlSafe(preg_replace('/\/{2,}/', '/', $baseDir . '/' . ($path === '' ? '' : $path . '/') . $filename));
+        $urlPath = str_replace($baseDir,'', $urlPath);
 
-        if (!is_dir($targetDir) && !mkdir($targetDir, 0777, true) && !is_dir($targetDir)) {
-            throw new ServerErrorException('Failed to create upload directory', 500);
+        if (!is_dir($targetDir)) {
+            mkdir($targetDir, 0777, true);
+            assert(is_dir($targetDir));
         }
 
         if (is_file($fullPath)) {
@@ -122,6 +92,7 @@ class Upload_File extends BaseApiModule {
                     $filename = $this->randomString(5) . '_' . $filename;
                     $fullPath = $targetDir . $filename;
                     $urlPath = $this->urlSafe(preg_replace('/\/{2,}/', '/', $baseDir . '/' . ($path === '' ? '' : $path . '/') . $filename));
+                    $urlPath = str_replace($baseDir,'', $urlPath);
                 }
             } else if (!unlink($fullPath)) {
                 throw new ServerErrorException('Failed to replace existing file', 500);
@@ -137,7 +108,7 @@ class Upload_File extends BaseApiModule {
         return [
             'status' => 'success',
             'message' => 'File uploaded successfully',
-            'path' => $urlPath,
+            'path' => 'images/' . $urlPath,
         ];
     }
 
@@ -163,6 +134,7 @@ class Upload_File extends BaseApiModule {
 
     private function normalizeRelativePath(string $path): string
     {
+        $path = strtolower($path);
         $path = trim(str_replace('\\', '/', $path), '/');
         if ($path === '') {
             return '';
@@ -172,5 +144,35 @@ class Upload_File extends BaseApiModule {
         }
 
         return preg_replace('/\/{2,}/', '/', $path);
+    }
+
+    public function do_Tagging(array $param)
+    {
+        $method = strtolower($this->psrRequest->getMethod());
+        switch ($method) {
+            case 'post':
+                $this->addTag($param);
+                break;
+            case 'delete':
+                $this->deleteTag($param);
+                break;
+            case 'put':
+                $this->editTag($param);
+                break;
+            default:
+                throw new ServerErrorException('Method not allowed', 405);
+        }    
+    }
+
+    private function addTag(array $param): void
+    {
+    }
+
+    private function deleteTag(array $param): void
+    {
+    }
+
+    private function editTag(array $param): void
+    {
     }
 }

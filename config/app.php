@@ -2,6 +2,8 @@
 // Configuration Constants
 define('LUKIMAN_NAMESPACE_PREFIX', 'Lukiman\AuthServer');
 
+define('UPLOAD_FILE_DIR', ROOT_PATH . 'images/');
+
 // Database Configuration
 define('DB_HOST', '127.0.0.1');
 define('DB_USER', 'root');

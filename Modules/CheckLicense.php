@@ -10,7 +10,7 @@ use Lukiman\Cores\Exception\NotFoundException;
 use Lukiman\Cores\Exception\ServerErrorException;
 use Lukiman\Cores\Exception\ValidationErrorException;
 
-class Check_License extends BaseApiModule {
+class CheckLicense extends BaseApiModule {
     public function __construct() {
         parent::__construct();
     }
