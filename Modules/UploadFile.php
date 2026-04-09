@@ -3,6 +3,7 @@
 namespace Lukiman\AuthServer\Modules;
 
 use Lukiman\AuthServer\Libraries\Exceptions\UploadException;
+use Lukiman\AuthServer\Libraries\Logger;
 use Lukiman\AuthServer\Libraries\M2MBase;
 use Lukiman\AuthServer\Models\FileTagging;
 use Lukiman\AuthServer\Models\TaggingText;
@@ -175,8 +176,8 @@ class UploadFile extends M2MBase {
 
     private function addTag(array $param): array
     {
-        $payload = (array) $this->psrRequest->getParsedBody();
-        $data = $payload['data'] ?? [];
+        $payload = $this->getParsedBody();
+        $data = $payload;
         if (!is_array($data) || empty($data)) {
             throw new ServerErrorException('No data provided for insert', 400);
         }
@@ -184,7 +185,7 @@ class UploadFile extends M2MBase {
         try {
             $taggingFulltext = [];
             if (isset($data['mftgDescription']) && !empty($data['mftgDescription'])) {
-                $taggingFulltext = explode(' ', $data['mftgDescription']);
+                $taggingFulltext = $data['mftgDescription'];
                 unset($data['mftgDescription']);
             }
             $insertId = $this->fileTaggingModel->insert($data);
@@ -195,7 +196,7 @@ class UploadFile extends M2MBase {
                 // the number will be extracted by removing first and last non-numeric characters from the content
                 foreach ($taggingFulltext as $content) {
                     $number =  preg_replace('/^\D+|\D+$/', '', $content);
-                    $taggingText[] = [
+                    $taggingText = [
                         'mftxText'      => $content,
                         'mftxNumber'    =>is_numeric($number) ? $number : '',
                     ];
@@ -204,6 +205,7 @@ class UploadFile extends M2MBase {
                 }
             }
         } catch (\Throwable $e) {
+            Logger::error('Failed to insert tagging: ' . $e);
             throw new ServerErrorException('Insert failed: ' . $e->getMessage(), 500);
         }
 
@@ -227,6 +229,7 @@ class UploadFile extends M2MBase {
             $this->fileTaggingModel->delete($id);
             $this->taggingTextModel->delete($id);
         } catch (\Throwable $e) {
+            Logger::error('Failed to delete tagging: ' . $e);
             throw new ServerErrorException('Delete failed: ' . $e->getMessage(), 500);
         }
 
@@ -241,13 +244,13 @@ class UploadFile extends M2MBase {
 
     private function editTag(array $param): array
     {
-        $id = $param[0] ?? ($this->psrRequest->getQueryParams()['id'] ?? null);
+        $id = $param[0] ?? null;
         if ($id === null || $id === '') {
             throw new ServerErrorException('ID is required for update', 404);
         }
 
-        $payload = (array) $this->psrRequest->getParsedBody();
-        $data = $payload['data'] ?? [];
+        $payload = $this->getParsedBody();
+        $data = $payload;
         if (!is_array($data) || empty($data)) {
             throw new ServerErrorException('No data provided for update', 400);
         }
@@ -255,7 +258,7 @@ class UploadFile extends M2MBase {
         try {
             $taggingFulltext = [];
             if (isset($data['mftgDescription']) && !empty($data['mftgDescription'])) {
-                $taggingFulltext = explode(' ', $data['mftgDescription']);
+                $taggingFulltext = $data['mftgDescription'];
                 unset($data['mftgDescription']);
             }
             $this->fileTaggingModel->update($id, $data);
@@ -278,6 +281,7 @@ class UploadFile extends M2MBase {
                 }
             }
         } catch (\Throwable $e) {
+            Logger::error('Failed to update tagging: ' . $e);
             throw new ServerErrorException('Update failed: ' . $e->getMessage(), 500);
         }
 
