@@ -2,7 +2,7 @@
 
 namespace Lukiman\AuthServer\Libraries;
 
-use App\Repository\NullAccessTokenRepository;
+use Lukiman\AuthServer\Libraries\Repositories\NullAccessTokenRepository;
 use League\OAuth2\Server\Exception\OAuthServerException;
 use League\OAuth2\Server\ResourceServer;
 use Lukiman\Cores\Exception\PermissionDeniedException;
