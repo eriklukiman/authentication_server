@@ -4,10 +4,22 @@ namespace Lukiman\AuthServer\Modules;
 
 use Lukiman\AuthServer\Libraries\Exceptions\UploadException;
 use Lukiman\AuthServer\Libraries\M2MBase;
+use Lukiman\AuthServer\Models\FileTagging;
+use Lukiman\AuthServer\Models\TaggingText;
 use Lukiman\Cores\Exception\ServerErrorException;
 use Psr\Http\Message\UploadedFileInterface;
 
 class UploadFile extends M2MBase {
+
+    private FileTagging $fileTaggingModel;
+    private TaggingText $taggingTextModel;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->fileTaggingModel = new FileTagging();
+        $this->taggingTextModel = new TaggingText();
+    }
 
     public function do_Index($param) {
         $method = strtolower($this->psrRequest->getMethod());
@@ -151,28 +163,130 @@ class UploadFile extends M2MBase {
         $method = strtolower($this->psrRequest->getMethod());
         switch ($method) {
             case 'post':
-                $this->addTag($param);
-                break;
+                return $this->addTag($param);
             case 'delete':
-                $this->deleteTag($param);
-                break;
+                return $this->deleteTag($param);
             case 'put':
-                $this->editTag($param);
-                break;
+                return $this->editTag($param);
             default:
                 throw new ServerErrorException('Method not allowed', 405);
-        }    
+        }
     }
 
-    private function addTag(array $param): void
+    private function addTag(array $param): array
     {
+        $payload = (array) $this->psrRequest->getParsedBody();
+        $data = $payload['data'] ?? [];
+        if (!is_array($data) || empty($data)) {
+            throw new ServerErrorException('No data provided for insert', 400);
+        }
+
+        try {
+            $taggingFulltext = [];
+            if (isset($data['mftgDescription']) && !empty($data['mftgDescription'])) {
+                $taggingFulltext = explode(' ', $data['mftgDescription']);
+                unset($data['mftgDescription']);
+            }
+            $insertId = $this->fileTaggingModel->insert($data);
+            if (!empty($taggingFulltext)) {
+                // loop fulltext and extract content, first as fulltext and second as number if the content is number
+                // example: G10001 will be fulltext G10001 and number 10001, while G10002 will be fulltext G10002 and number 10002, but if the content is not number like GABC then the fulltext will be GABC and number will be empty
+                // example: G10A01 will be fulltext G10A01 and number will be empty, while G10001 will be fulltext G10001 and number 10001
+                // the number will be extracted by removing first and last non-numeric characters from the content
+                foreach ($taggingFulltext as $content) {
+                    $number =  preg_replace('/^\D+|\D+$/', '', $content);
+                    $taggingText[] = [
+                        'mftxText'      => $content,
+                        'mftxNumber'    =>is_numeric($number) ? $number : '',
+                    ];
+                    $taggingText['mftxId'] = $insertId;
+                    $this->taggingTextModel->insert($taggingText);
+                }
+            }
+        } catch (\Throwable $e) {
+            throw new ServerErrorException('Insert failed: ' . $e->getMessage(), 500);
+        }
+
+        return [
+            'status' => 'success',
+            'message' => 'Record inserted',
+            'data' => [
+                'mftgId' => (int) $insertId,
+            ],
+        ];
     }
 
-    private function deleteTag(array $param): void
+    private function deleteTag(array $param): array
     {
+        $id = $param[0] ?? ($this->psrRequest->getQueryParams()['id'] ?? null);
+        if ($id === null || $id === '') {
+            throw new ServerErrorException('ID is required for delete', 404);
+        }
+
+        try {
+            $this->fileTaggingModel->delete($id);
+            $this->taggingTextModel->delete($id);
+        } catch (\Throwable $e) {
+            throw new ServerErrorException('Delete failed: ' . $e->getMessage(), 500);
+        }
+
+        return [
+            'status' => 'success',
+            'message' => 'Record deleted',
+            'data' => [
+                'mftgId' => (int) $id,
+            ],
+        ];
     }
 
-    private function editTag(array $param): void
+    private function editTag(array $param): array
     {
+        $id = $param[0] ?? ($this->psrRequest->getQueryParams()['id'] ?? null);
+        if ($id === null || $id === '') {
+            throw new ServerErrorException('ID is required for update', 404);
+        }
+
+        $payload = (array) $this->psrRequest->getParsedBody();
+        $data = $payload['data'] ?? [];
+        if (!is_array($data) || empty($data)) {
+            throw new ServerErrorException('No data provided for update', 400);
+        }
+
+        try {
+            $taggingFulltext = [];
+            if (isset($data['mftgDescription']) && !empty($data['mftgDescription'])) {
+                $taggingFulltext = explode(' ', $data['mftgDescription']);
+                unset($data['mftgDescription']);
+            }
+            $this->fileTaggingModel->update($id, $data);
+            if (!empty($taggingFulltext)) {
+                // delete existing tagging text associated with the id
+                $this->taggingTextModel->delete($id);
+
+                // loop fulltext and extract content, first as fulltext and second as number if the content is number
+                // example: G10001 will be fulltext G10001 and number 10001, while G10002 will be fulltext G10002 and number 10002, but if the content is not number like GABC then the fulltext will be GABC and number will be empty
+                // example: G10A01 will be fulltext G10A01 and number will be empty, while G10001 will be fulltext G10001 and number 10001
+                // the number will be extracted by removing first and last non-numeric characters from the content
+                foreach ($taggingFulltext as $content) {
+                    $number =  preg_replace('/^\D+|\D+$/', '', $content);
+                    $taggingText = [
+                        'mftxId'      => $id,
+                        'mftxText'    => $content,
+                        'mftxNumber'  => is_numeric($number) ? $number : '',
+                    ];
+                    $this->taggingTextModel->insert($taggingText);
+                }
+            }
+        } catch (\Throwable $e) {
+            throw new ServerErrorException('Update failed: ' . $e->getMessage(), 500);
+        }
+
+        return [
+            'status' => 'success',
+            'message' => 'Record updated',
+            'data' => [
+                'mftgId' => (int) $id,
+            ],
+        ];
     }
 }
