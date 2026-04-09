@@ -17,7 +17,6 @@ class CheckLicense extends BaseApiModule {
 
     public function do_Index() {
         $postData = $this->getParsedBody();
-        Logger::info('Received license check request: ' . json_encode($postData));
         $clientId = $postData['client_id'] ?? null;
         $machineId = $postData['machine_id'] ?? null;
         $data = $postData['data'] ?? null;
@@ -43,11 +42,14 @@ class CheckLicense extends BaseApiModule {
 
         // Check if client is expired
         if (!empty($clientData['apclExpiredTime']) || $clientData['apclIsExpired'] == 0) {
-            $expiredTime = strtotime($clientData['apclExpiredTime']);
+            // Expired time is NULL, meaning never expired, 
+            // but if expired time is set, check if current time is greater than expired time
+            $expiredTime = empty($clientData['apclExpiredTime']) ? time() + 3600 : strtotime($clientData['apclExpiredTime']);
             if (time() > $expiredTime) {
                 Logger::info('Client is expired: ' . $clientId);
                 $appClientModel->update($clientId, [
-                    'apclIsExpired' => 1
+                    'apclIsExpired' => 1,
+                    'apclUpdatedTime' => 'NOW()'
                 ]);
                 throw new AuthorizationRejectedException('Client is expired', 400);
             }
@@ -61,7 +63,8 @@ class CheckLicense extends BaseApiModule {
             Logger::info('Machine ID is null, updating with new machine ID: ' . $machineId);
 
             $appClientModel->update($clientId, [
-                'apclMachineId' => $machineId
+                'apclMachineId' => $machineId,
+                'apclUpdatedTime' => 'NOW()'
             ]);
             $clientData['apclMachineId'] = $machineId;
         } else if ($clientData['apclMachineId'] !== $machineId) {
