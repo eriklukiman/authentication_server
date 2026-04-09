@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS master_file_tagging (
 );
 
 CREATE TABLE IF NOT EXISTS master_file_text (
-    `mftxId` bigint UNSIGNED NOT NULL PRIMARY KEY,
+    `mftxId` bigint UNSIGNED NOT NULL,
     `mftxText` varchar(1000) NOT NULL DEFAULT '',
     `mftxCreatedTime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `mftxUpdatedTime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
