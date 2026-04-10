@@ -76,6 +76,7 @@ try {
         'clntSecret'    => $clientSecret,
         'clntName'      => $name,
         'clntRedirectUri' => 'wish-phototagging://oauth/callback',
+        'clntIsConfidential' => 1,
     ]);
 
 } catch (Throwable $e) {
