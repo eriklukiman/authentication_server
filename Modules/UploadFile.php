@@ -121,7 +121,7 @@ class UploadFile extends M2MBase {
         return [
             'status' => 'success',
             'message' => 'File uploaded successfully',
-            'path' => 'images/' . $urlPath,
+            'path' => '/images/' . $urlPath,
         ];
     }
 
