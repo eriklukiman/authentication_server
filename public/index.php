@@ -70,6 +70,13 @@ if (!empty($fullPath) && $fullPath !== '/') {
         Controller\Base::set_action($action);
         $ctrl = Controller::load($class);
 
+        // If the action method doesn't exist, it's a path parameter - use original value as is
+        $doAction = 'do_' . $action;
+        if (!empty($_param) && !method_exists($ctrl, $doAction)) {
+            array_unshift($params, $_param);
+            $action = 'Index';
+        }
+
         $retVal = $ctrl->execute($action, $params);
         $ctrl->sendHeaders();
         
