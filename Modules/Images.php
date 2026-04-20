@@ -31,7 +31,7 @@ class Images extends BaseApiModule
 
         // Base upload dir is on constant UPLOAD_FILE_DIR
         // Find the file in the upload dir with the filename from param
-        $filePath = UPLOAD_FILE_DIR . '/' . implode('/', $param);
+        $filePath = urldecode(UPLOAD_FILE_DIR . '/' . implode('/', $param));
         if (!file_exists($filePath)) {
             Logger::info("Path: " . implode('/', $param));
             Logger::error('File not found: ' . $filePath);
