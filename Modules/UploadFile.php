@@ -43,6 +43,7 @@ class UploadFile extends M2MBase {
         }
 
         $baseDir = UPLOAD_FILE_DIR;
+        if (!str_ends_with($baseDir, '/')) $baseDir.='/';
 
         if (file_exists($baseDir) && !is_dir($baseDir)) {
             throw new ServerErrorException('Upload path is not a directory', 500);
@@ -95,7 +96,9 @@ class UploadFile extends M2MBase {
         $urlPath = str_replace($baseDir,'', $urlPath);
 
         if (!is_dir($targetDir)) {
-            mkdir($targetDir, 0777, true);
+            if (!mkdir($targetDir, 0777, true)) {
+                Logger::error('Failed to create directory: ' . error_get_last()['message'] ?? 'Error mkdir()');
+            }
             assert(is_dir($targetDir));
         }
 
