@@ -25,6 +25,24 @@ function promptInput(string $message): string
 	return $value === false ? '' : trim($value);
 }
 
+function normalizeFilenamePart(string $value): string
+{
+	$normalizedValue = $value;
+	if (function_exists('iconv')) {
+		$transliteratedValue = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $value);
+		if ($transliteratedValue !== false) {
+			$normalizedValue = $transliteratedValue;
+		}
+	}
+
+	$normalizedValue = preg_replace('/[^A-Za-z0-9._ -]+/', '-', $normalizedValue);
+	$normalizedValue = preg_replace('/\s+/', ' ', $normalizedValue);
+	$normalizedValue = preg_replace('/-+/', '-', $normalizedValue);
+	$normalizedValue = trim($normalizedValue ?? '', " .-_");
+
+	return $normalizedValue === '' ? 'client' : $normalizedValue;
+}
+
 function getAvailableClients(Client $clientModel): array
 {
 	$query = Database_Query::Select($clientModel->getTable())
@@ -101,7 +119,8 @@ try {
 			throw new RuntimeException('Unable to create export directory: ' . EXPORT_DIR);
 		}
 
-		$outputPath = EXPORT_DIR . '/' . $clientId . '.zip';
+		$normalizedClientName = normalizeFilenamePart((string) ($client['clntName'] ?? 'client'));
+		$outputPath = EXPORT_DIR . '/' . $clientId . ' - ' . $normalizedClientName . '.zip';
 	} elseif (!str_starts_with($outputPath, '/')) {
 		$outputPath = ROOT_PATH . '/' . ltrim($outputPath, '/');
 	}
