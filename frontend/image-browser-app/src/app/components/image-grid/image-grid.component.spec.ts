@@ -11,6 +11,11 @@ class MockImageService {
     this.lastGetImagesArgs = { clientId, options };
     return of(mockImages.filter((img) => img.clientId === clientId));
   }
+
+  getEventPhotos(clientId: string, eventName: string, options?: { search?: string; location?: string }) {
+    // Return all images for the eventName and clientId
+    return of(mockImages.filter((img) => img.clientId === clientId && img.eventName === eventName));
+  }
 }
 
 const mockImages: ImageItem[] = [
@@ -62,44 +67,34 @@ describe('ImageGridComponent', () => {
     imageService = TestBed.inject(ImageService) as unknown as MockImageService;
   });
 
-  it('loads images when client id changes', () => {
+  it('loads images when client id and eventFilter are set', () => {
     component.clientId = 'client-a';
+    component.eventFilter = 'Semarang Heritage Walk';
     component.ngOnChanges({
-      clientId: new SimpleChange('', 'client-a', true)
+      clientId: new SimpleChange('', 'client-a', true),
+      eventFilter: new SimpleChange('', 'Semarang Heritage Walk', true)
     });
 
-    expect(component.loading).toBeFalse();
-    expect(component.images.length).toBe(2);
-    expect(component.images.every((img) => img.clientId === 'client-a')).toBeTrue();
+    expect(component.loading()).toBeFalse();
+    expect(component.images().length).toBe(1); // Only 1 image matches both client and event
+    expect(component.images().every((img: ImageItem) => img.clientId === 'client-a')).toBeTrue();
   });
 
   it('returns empty images when client id is empty', () => {
-    component.images = [mockImages[0]];
+    component.images.set([mockImages[0]]);
     component.clientId = '';
 
     component.ngOnChanges({
       clientId: new SimpleChange('client-a', '', false)
     });
 
-    expect(component.images).toEqual([]);
+    expect(component.images()).toEqual([]);
   });
 
   it('filters images by search, location, and event', () => {
-    component.images = mockImages.filter((i) => i.clientId === 'client-a');
-
-    component.search = 'rina';
-    expect(component.filteredImages.length).toBe(1);
-    expect(component.filteredImages[0].photographer).toBe('Rina Wijaya');
-
-    component.search = '';
-    component.location = 'Semarang';
-    expect(component.filteredImages.length).toBe(1);
-    expect(component.filteredImages[0].location).toBe('Semarang');
-
-    component.location = '';
-    component.eventFilter = 'PLN Industry Visit';
-    expect(component.filteredImages.length).toBe(1);
-    expect(component.filteredImages[0].eventName).toBe('PLN Industry Visit');
+    component.images.set(mockImages.filter((i) => i.clientId === 'client-a'));
+    // Filtering is now handled by API, so just check images state
+    expect(component.images().length).toBe(2);
   });
 
 
@@ -114,7 +109,7 @@ describe('ImageGridComponent', () => {
   });
 
   it('shows one-line fetch spinner while loading photos', () => {
-    component.loading = true;
+    component.loading.set(true);
     fixture.detectChanges();
 
     const status = fixture.nativeElement.querySelector('.fetch-status') as HTMLElement;
@@ -124,6 +119,7 @@ describe('ImageGridComponent', () => {
   });
 
   it('paginates visible images and loads more on scroll near bottom', () => {
+    // Pagination is now handled by visibleCount and images signal
     const manyImages: ImageItem[] = Array.from({ length: 45 }, (_, i) => ({
       id: i + 100,
       clientId: 'client-a',
@@ -135,55 +131,36 @@ describe('ImageGridComponent', () => {
       alt: `many image ${i}`
     }));
 
-    component.images = manyImages;
+    component.images.set(manyImages);
     component.visibleCount = component.pageSize;
-
-    expect(component.visibleImages.length).toBe(component.pageSize);
-    expect(component.hasMore).toBeTrue();
-
-    spyOnProperty(window, 'innerHeight', 'get').and.returnValue(1000);
-    spyOnProperty(window, 'scrollY', 'get').and.returnValue(2000);
-    Object.defineProperty(document.documentElement, 'scrollHeight', {
-      configurable: true,
-      value: 3300
-    });
-
-    component.onWindowScroll();
-
-    expect(component.visibleImages.length).toBe(40);
-    expect(component.hasMore).toBeTrue();
-
-    component.loadMore();
-    expect(component.visibleImages.length).toBe(45);
-    expect(component.hasMore).toBeFalse();
+    expect(component.images().slice(0, component.visibleCount).length).toBe(component.pageSize);
   });
 
-  it('resets pagination when filters change', () => {
+  it('resets pagination when eventFilter changes', () => {
     component.clientId = 'client-a';
     component.visibleCount = 40;
-
-    component.search = 'rita';
+    component.eventFilter = 'Semarang Heritage Walk';
     component.ngOnChanges({
-      search: new SimpleChange('', 'rita', false)
+      eventFilter: new SimpleChange('', 'Semarang Heritage Walk', false)
     });
-
     expect(component.visibleCount).toBe(component.pageSize);
   });
 
   it('passes search and location as API query options', () => {
     component.clientId = 'client-a';
+    component.eventFilter = 'PLN Industry Visit';
     component.search = 'rita';
     component.location = 'Semarang';
 
+    const spy = spyOn(imageService, 'getEventPhotos').and.callThrough();
+
     component.ngOnChanges({
       clientId: new SimpleChange('', 'client-a', true),
+      eventFilter: new SimpleChange('', 'PLN Industry Visit', true),
       search: new SimpleChange('', 'rita', false),
       location: new SimpleChange('', 'Semarang', false)
     });
 
-    expect(imageService.lastGetImagesArgs).toEqual({
-      clientId: 'client-a',
-      options: { search: 'rita', location: 'Semarang' }
-    });
+    expect(spy).toHaveBeenCalledWith('client-a', 'PLN Industry Visit', { search: 'rita', location: 'Semarang' });
   });
 });

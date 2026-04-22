@@ -13,7 +13,7 @@ describe('app routes', () => {
     expect(routes[1].path).toBe(':client_id');
     expect(routes[1].component).toBe(ClientEventsComponent);
 
-    expect(routes[2].path).toBe(':client_id/browse');
+    expect(routes[2].path).toBe(':client_id/browse/:event_id');
     expect(routes[2].component).toBe(BrowseComponent);
   });
 });

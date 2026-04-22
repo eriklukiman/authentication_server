@@ -34,6 +34,19 @@ class MockImageService {
   getEventNames() {
     return of([]);
   }
+
+  getEventDetail(clientId: string, eventId: string) {
+    return of({
+      msevId: 1,
+      msevName: 'Semarang Heritage Walk',
+      msevCreatedTime: '',
+      msevUpdatedTime: '',
+      locations: [
+        { mlocId: 1, mlocMsevId: 1, mlocName: 'Semarang', mlocCreatedClientId: clientId, mlocAppVersion: '', mlocGuiVersion: '', mlocMainVersion: '', mlocCreatedTime: '', mlocUpdatedTime: '' },
+        { mlocId: 2, mlocMsevId: 2, mlocName: 'Jakarta', mlocCreatedClientId: clientId, mlocAppVersion: '', mlocGuiVersion: '', mlocMainVersion: '', mlocCreatedTime: '', mlocUpdatedTime: '' }
+      ]
+    });
+  }
 }
 
 describe('BrowseComponent', () => {
