@@ -1,16 +1,18 @@
-import { Component, HostListener, Input, OnChanges, SimpleChanges, inject } from '@angular/core';
+import { Component, HostListener, Input, OnChanges, OnDestroy, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ImageItem, ImageService } from '../../services/image.service';
 import { LightboxComponent } from '../lightbox/lightbox.component';
+import { Subscription } from 'rxjs';
+import { ImageGridItemComponent } from './image-grid-item.component';
 
 @Component({
   selector: 'app-image-grid',
   standalone: true,
-  imports: [CommonModule, LightboxComponent],
+  imports: [CommonModule, LightboxComponent, ImageGridItemComponent],
   templateUrl: './image-grid.component.html',
   styleUrl: './image-grid.component.css'
 })
-export class ImageGridComponent implements OnChanges {
+export class ImageGridComponent implements OnChanges, OnDestroy {
   @Input() clientId = '';
   @Input() search = '';
   @Input() location = '';
@@ -21,10 +23,9 @@ export class ImageGridComponent implements OnChanges {
   images: ImageItem[] = [];
   loading = false;
   selectedImage: ImageItem | null = null;
-  orientationMap: Record<number, 'landscape' | 'portrait' | 'square'> = {};
-  loadedSet = new Set<number>();
   readonly pageSize = 20;
   visibleCount = this.pageSize;
+  private imagesRequestSub: Subscription | null = null;
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['clientId']) {
@@ -32,24 +33,46 @@ export class ImageGridComponent implements OnChanges {
       return;
     }
 
-    if (changes['search'] || changes['location'] || changes['eventFilter']) {
+    if (changes['search'] || changes['location']) {
+      this.loadImages();
+      return;
+    }
+
+    if (changes['eventFilter']) {
       this.resetPagination();
     }
   }
 
   private loadImages(): void {
+    this.imagesRequestSub?.unsubscribe();
+
     if (!this.clientId) {
       this.images = [];
+      this.loading = false;
       return;
     }
+
     this.loading = true;
-    this.loadedSet = new Set<number>();
-    this.orientationMap = {};
-    this.imageService.getImages(this.clientId).subscribe((data) => {
-      this.images = data;
-      this.resetPagination();
-      this.loading = false;
+    this.images = [];
+    this.resetPagination();
+    this.imagesRequestSub = this.imageService.getImages(this.clientId, {
+      search: this.search,
+      location: this.location
+    }).subscribe({
+      next: (data) => {
+        this.images = data;
+      },
+      error: () => {
+        this.loading = false;
+      },
+      complete: () => {
+        this.loading = false;
+      }
     });
+  }
+
+  ngOnDestroy(): void {
+    this.imagesRequestSub?.unsubscribe();
   }
 
   private resetPagination(): void {
@@ -103,32 +126,6 @@ export class ImageGridComponent implements OnChanges {
 
   trackById(_: number, item: ImageItem): number {
     return item.id;
-  }
-
-  onImageLoad(event: Event, image: ImageItem): void {
-    const target = event.target as HTMLImageElement;
-    target.classList.add('loaded');
-    this.loadedSet.add(image.id);
-
-    const { naturalWidth, naturalHeight } = target;
-    if (!naturalWidth || !naturalHeight) {
-      return;
-    }
-
-    const ratio = naturalWidth / naturalHeight;
-    if (ratio > 1.15) {
-      this.orientationMap[image.id] = 'landscape';
-      return;
-    }
-    if (ratio < 0.87) {
-      this.orientationMap[image.id] = 'portrait';
-      return;
-    }
-    this.orientationMap[image.id] = 'square';
-  }
-
-  getOrientationClass(image: ImageItem): string {
-    return this.orientationMap[image.id] ?? 'landscape';
   }
 
   openLightbox(image: ImageItem): void {

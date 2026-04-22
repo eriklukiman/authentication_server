@@ -1,23 +1,14 @@
+<div class="fetch-status" *ngIf="loading">
+  <span class="line-spinner" aria-hidden="true"></span>
+  <span>Loading photos...</span>
+</div>
+
 <div class="image-grid">
-  <div
-    class="image-grid-item"
+  <app-image-grid-item
     *ngFor="let image of visibleImages; trackBy: trackById"
-    [ngClass]="getOrientationClass(image)"
-    (click)="openLightbox(image)"
-    role="button"
-    tabindex="0"
-    (keydown.enter)="openLightbox(image)"
-    [attr.aria-label]="'View ' + image.alt"
-  >
-    <div class="thumb">
-      <div class="spinner" *ngIf="!loadedSet.has(image.id)"></div>
-      <img [src]="image.url" [alt]="image.alt" loading="lazy" (load)="onImageLoad($event, image)" />
-    </div>
-    <div class="meta">
-      <strong>{{ image.eventName }}</strong>
-      <span>{{ image.location }} · {{ image.photographer }}</span>
-    </div>
-  </div>
+    [image]="image"
+    (opened)="openLightbox($event)"
+  />
 </div>
 
 <div class="infinite-status" *ngIf="hasMore">Loading more photos as you scroll...</div>

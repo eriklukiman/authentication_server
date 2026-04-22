@@ -63,7 +63,8 @@ describe('ClientEventsComponent', () => {
     fixture.detectChanges();
 
     expect(component.clientId).toBe('client-a');
-    expect(component.events.length).toBe(2);
+    expect(component.events().length).toBe(2);
+    expect(component.loading()).toBeFalse();
     expect(fixture.nativeElement.querySelectorAll('.event-card').length).toBe(2);
   });
 

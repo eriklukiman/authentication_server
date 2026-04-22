@@ -3,43 +3,36 @@ import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { By } from '@angular/platform-browser';
 import { of } from 'rxjs';
 import { BrowseComponent } from './browse.component';
-import { ImageService } from '../services/image.service';
+import { EventItem, ImageService } from '../services/image.service';
 import { ImageGridComponent } from '../components/image-grid/image-grid.component';
 
 class MockImageService {
-  getImages() {
-    return of([
+  getEvents() {
+    return of<EventItem[]>([
       {
-        id: 1,
-        clientId: 'client-a',
-        eventId: 1,
-        eventName: 'Semarang Heritage Walk',
-        location: 'Semarang',
-        photographer: 'Budi Santoso',
-        url: 'https://example.com/1.jpg',
-        alt: 'one'
+        id: 1, clientId: 'client-a', name: 'Semarang Heritage Walk',
+        date: '2026-03-10', location: 'Semarang',
+        photographer: 'Budi Santoso', coverImageUrl: '', imageCount: 6
       },
       {
-        id: 2,
-        clientId: 'client-a',
-        eventId: 2,
-        eventName: 'PLN Industry Visit',
-        location: 'Jakarta',
-        photographer: 'Rina Wijaya',
-        url: 'https://example.com/2.jpg',
-        alt: 'two'
+        id: 2, clientId: 'client-a', name: 'PLN Industry Visit',
+        date: '2026-04-05', location: 'Jakarta',
+        photographer: 'Rina Wijaya', coverImageUrl: '', imageCount: 5
       },
       {
-        id: 3,
-        clientId: 'client-a',
-        eventId: 1,
-        eventName: 'Semarang Heritage Walk',
-        location: 'Semarang',
-        photographer: 'Budi Santoso',
-        url: 'https://example.com/3.jpg',
-        alt: 'three'
+        id: 3, clientId: 'client-a', name: 'Semarang Heritage Walk',
+        date: '2026-03-10', location: 'Semarang',
+        photographer: 'Budi Santoso', coverImageUrl: '', imageCount: 4
       }
     ]);
+  }
+
+  getImages() {
+    return of([]);
+  }
+
+  getEventNames() {
+    return of([]);
   }
 }
 

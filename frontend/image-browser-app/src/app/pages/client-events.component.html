@@ -1,0 +1,27 @@
+<main class="container">
+  <h2>Events</h2>
+  <p class="sub">Client: <code>{{ clientId }}</code></p>
+
+  @if (loading()) {
+    <p class="empty">Loading events...</p>
+  } @else if (events().length === 0) {
+    <p class="empty">No events found for this client.</p>
+  }
+
+  <div class="event-grid">
+    @for (event of events(); track event.id) {
+      <a class="event-card" [routerLink]="['/', clientId, 'browse']" [queryParams]="{ event: event.name }">
+        <img [src]="event.coverImageUrl" [alt]="event.name" loading="lazy" />
+        <div class="event-info">
+          <strong>{{ event.name }}</strong>
+          <span>{{ event.date | date:'mediumDate' }}</span>
+          <span>{{ event.location }}</span>
+          <span>{{ event.photographer }}</span>
+          <span class="count">{{ event.imageCount }} photos</span>
+        </div>
+      </a>
+    }
+  </div>
+
+  <a class="browse-all" [routerLink]="['/', clientId, 'browse']">Browse all images &rarr;</a>
+</main>

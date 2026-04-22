@@ -5,7 +5,10 @@ import { ImageGridComponent } from './image-grid.component';
 import { ImageItem, ImageService } from '../../services/image.service';
 
 class MockImageService {
-  getImages(clientId: string) {
+  lastGetImagesArgs: { clientId: string; options?: { search?: string; location?: string } } | null = null;
+
+  getImages(clientId: string, options?: { search?: string; location?: string }) {
+    this.lastGetImagesArgs = { clientId, options };
     return of(mockImages.filter((img) => img.clientId === clientId));
   }
 }
@@ -46,6 +49,7 @@ const mockImages: ImageItem[] = [
 describe('ImageGridComponent', () => {
   let fixture: ComponentFixture<ImageGridComponent>;
   let component: ImageGridComponent;
+  let imageService: MockImageService;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -55,6 +59,7 @@ describe('ImageGridComponent', () => {
 
     fixture = TestBed.createComponent(ImageGridComponent);
     component = fixture.componentInstance;
+    imageService = TestBed.inject(ImageService) as unknown as MockImageService;
   });
 
   it('loads images when client id changes', () => {
@@ -97,29 +102,6 @@ describe('ImageGridComponent', () => {
     expect(component.filteredImages[0].eventName).toBe('PLN Industry Visit');
   });
 
-  it('marks image loaded and classifies orientation', () => {
-    const img = document.createElement('img');
-    Object.defineProperty(img, 'naturalWidth', { configurable: true, value: 1600 });
-    Object.defineProperty(img, 'naturalHeight', { configurable: true, value: 800 });
-
-    component.onImageLoad({ target: img } as unknown as Event, mockImages[0]);
-    expect(component.loadedSet.has(mockImages[0].id)).toBeTrue();
-    expect(component.orientationMap[mockImages[0].id]).toBe('landscape');
-
-    Object.defineProperty(img, 'naturalWidth', { configurable: true, value: 800 });
-    Object.defineProperty(img, 'naturalHeight', { configurable: true, value: 1600 });
-    component.onImageLoad({ target: img } as unknown as Event, mockImages[1]);
-    expect(component.orientationMap[mockImages[1].id]).toBe('portrait');
-
-    Object.defineProperty(img, 'naturalWidth', { configurable: true, value: 1000 });
-    Object.defineProperty(img, 'naturalHeight', { configurable: true, value: 1000 });
-    component.onImageLoad({ target: img } as unknown as Event, mockImages[2]);
-    expect(component.orientationMap[mockImages[2].id]).toBe('square');
-  });
-
-  it('defaults to landscape class before orientation is known', () => {
-    expect(component.getOrientationClass(mockImages[0])).toBe('landscape');
-  });
 
   it('opens and closes lightbox while managing body scroll', () => {
     component.openLightbox(mockImages[0]);
@@ -131,16 +113,14 @@ describe('ImageGridComponent', () => {
     expect(document.body.style.overflow).toBe('');
   });
 
-  it('shows spinner before image load and hides it after load', () => {
-    component.images = [mockImages[0]];
+  it('shows one-line fetch spinner while loading photos', () => {
+    component.loading = true;
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('.spinner')).not.toBeNull();
-
-    component.loadedSet.add(mockImages[0].id);
-    fixture.detectChanges();
-
-    expect(fixture.nativeElement.querySelector('.spinner')).toBeNull();
+    const status = fixture.nativeElement.querySelector('.fetch-status') as HTMLElement;
+    expect(status).not.toBeNull();
+    expect(status.textContent).toContain('Loading photos...');
+    expect(status.querySelector('.line-spinner')).not.toBeNull();
   });
 
   it('paginates visible images and loads more on scroll near bottom', () => {
@@ -179,6 +159,7 @@ describe('ImageGridComponent', () => {
   });
 
   it('resets pagination when filters change', () => {
+    component.clientId = 'client-a';
     component.visibleCount = 40;
 
     component.search = 'rita';
@@ -187,5 +168,22 @@ describe('ImageGridComponent', () => {
     });
 
     expect(component.visibleCount).toBe(component.pageSize);
+  });
+
+  it('passes search and location as API query options', () => {
+    component.clientId = 'client-a';
+    component.search = 'rita';
+    component.location = 'Semarang';
+
+    component.ngOnChanges({
+      clientId: new SimpleChange('', 'client-a', true),
+      search: new SimpleChange('', 'rita', false),
+      location: new SimpleChange('', 'Semarang', false)
+    });
+
+    expect(imageService.lastGetImagesArgs).toEqual({
+      clientId: 'client-a',
+      options: { search: 'rita', location: 'Semarang' }
+    });
   });
 });

@@ -1,0 +1,26 @@
+<div
+  class="image-grid-item"
+  (click)="open()"
+  role="button"
+  tabindex="0"
+  (keydown.enter)="open()"
+  [attr.aria-label]="'View ' + image.alt"
+>
+  <div class="thumb">
+    <div class="spinner" *ngIf="loading && !failed"></div>
+    <div class="no-photo" *ngIf="failed">No photo</div>
+    <img
+      *ngIf="!failed"
+      [class.loaded]="imageLoaded"
+      [src]="image.url"
+      [alt]="image.alt"
+      loading="lazy"
+      (load)="onImageLoad($event)"
+      (error)="onImageError()"
+    />
+  </div>
+  <div class="meta">
+    <strong>{{ image.eventName }}</strong>
+    <span>{{ image.location }} · {{ image.photographer }}</span>
+  </div>
+</div>
