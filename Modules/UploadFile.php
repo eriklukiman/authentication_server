@@ -5,7 +5,10 @@ namespace Lukiman\AuthServer\Modules;
 use Lukiman\AuthServer\Libraries\Exceptions\UploadException;
 use Lukiman\AuthServer\Libraries\Logger;
 use Lukiman\AuthServer\Libraries\M2MBase;
+use Lukiman\AuthServer\Models\Event;
 use Lukiman\AuthServer\Models\FileTagging;
+use Lukiman\AuthServer\Models\Location;
+use Lukiman\AuthServer\Models\Photographer;
 use Lukiman\AuthServer\Models\TaggingText;
 use Lukiman\Cores\Exception\ServerErrorException;
 use Psr\Http\Message\UploadedFileInterface;
@@ -26,6 +29,8 @@ class UploadFile extends M2MBase {
         $method = strtolower($this->psrRequest->getMethod());
 
         if ($method == 'post') {
+            $attributes = $this->psrRequest->getAttributes();
+            Logger::info('Received file upload request with attributes: ' . json_encode($attributes));
             $uploadedFiles = $this->psrRequest->getUploadedFiles();
             if (empty($uploadedFiles['image'])) {
                 throw new ServerErrorException('No file uploaded', 400);
@@ -165,6 +170,11 @@ class UploadFile extends M2MBase {
     public function do_Tagging(array $param)
     {
         $method = strtolower($this->psrRequest->getMethod());
+        $attributes = $this->psrRequest->getAttributes();
+        Logger::info('Received file upload request with attributes: ' . json_encode($attributes));
+        Logger::info('Versions, APP: '.$this->psrRequest->getHeaderLine("APP-VERSION"));
+        Logger::info('Versions, GUI: '.$this->psrRequest->getHeaderLine("GUI-VERSION"));
+        Logger::info('Versions, MAIN: '.$this->psrRequest->getHeaderLine("MAIN-VERSION"));
         switch ($method) {
             case 'post':
                 return $this->addTag($param);
@@ -185,12 +195,23 @@ class UploadFile extends M2MBase {
             throw new ServerErrorException('No data provided for insert', 400);
         }
 
+        $this->fileTaggingModel->getDb()->beginTransaction();
         try {
+            $requestAttributes = $this->psrRequest->getAttributes();
+
+            $appVersion = $this->psrRequest->getHeaderLine("APP-VERSION") ?? '';
+            $guiVersion = $this->psrRequest->getHeaderLine("GUI-VERSION") ?? '';
+            $mainVersion = $this->psrRequest->getHeaderLine("MAIN-VERSION") ?? '';
+
             $taggingFulltext = [];
             if (isset($data['mftgDescription']) && !empty($data['mftgDescription'])) {
                 $taggingFulltext = $data['mftgDescription'];
                 unset($data['mftgDescription']);
             }
+            $data['mftgClientId'] = $requestAttributes['oauth_client_id'] ?? '';
+            $data['mftgAppVersion'] = $appVersion;
+            $data['mftgGuiVersion'] = $guiVersion;
+            $data['mftgMainVersion'] = $mainVersion;
             $insertId = $this->fileTaggingModel->insert($data);
             if (!empty($taggingFulltext)) {
                 // loop fulltext and extract content, first as fulltext and second as number if the content is number
@@ -207,7 +228,90 @@ class UploadFile extends M2MBase {
                     $this->taggingTextModel->insert($taggingText);
                 }
             }
+
+            Logger::info('JSON data to be inserted: ' . json_encode($data));
+
+            // create data event
+            $eventName = $data['mftgEventName'] ?? null;
+            $locationName = $data['mftgPhotoLocation'] ?? null;
+            $photographerName = $data['mftgFotografer'] ?? null;
+
+            $eventModel = new Event();
+            $locationModel = new Location();
+            $photgrapherModel = new Photographer();
+
+            $eventProps = [];
+
+            // create data event
+            if (!empty($eventName)) {
+                $existEventQuery = $eventModel->newQuery();
+                $existEventQuery
+                    ->limit(1)
+                    ->where('msevName', $eventName)
+                    ->execute($eventModel->getDb());
+                if ($existEventQuery->count() > 0) {
+                    Logger::info('Event already exists: ' . $eventName);
+                    $existEvent = $existEventQuery->next('array');
+                    $eventProps['msevId'] = $existEvent['msevId'];
+                } else {
+                    Logger::info('Creating new event: ' . $eventName);
+                    $eventProps['msevName'] = $eventName;
+                    $eventProps['msevAppVersion'] = $appVersion;
+                    $eventProps['msevGuiVersion'] = $guiVersion;
+                    $eventProps['msevMainVersion'] = $mainVersion;
+                    $eventProps['msevCreatedClientId'] = $requestAttributes['oauth_client_id'] ?? '';
+                    $eventProps['msevCreatedTime'] = date('Y-m-d H:i:s');
+                    $eventProps['msevUpdatedTime'] = date('Y-m-d H:i:s');
+                    $eventProps['msevId'] = $eventModel->insert($eventProps);
+                }
+
+            }
+        
+            // create data location
+            if (!empty($locationName) && !empty($eventProps['msevId'])) {
+                $existLocationQuery = $locationModel->newQuery();
+                $existLocationQuery
+                    ->limit(1)
+                    ->where('mlocName', $locationName)
+                    ->where('mlocMsevId', $eventProps['msevId'])
+                    ->execute($locationModel->getDb());
+                if (empty($existLocationQuery->count())) {
+                    $locationProps = [
+                        'mlocMsevId' => $eventProps['msevId'],
+                        'mlocName' => $locationName,
+                        'mlocCreatedClientId' => $requestAttributes['oauth_client_id'] ?? '',
+                        'mlocCreatedTime' => date('Y-m-d H:i:s'),
+                        'mlocUpdatedTime' => date('Y-m-d H:i:s'),
+                    ];
+                    $locationModel->insert($locationProps);
+                }
+            }
+
+            // create data photographer
+            if (!empty($photographerName) && !empty($eventProps['msevId'])) {
+                $existPhotographerQuery = $photgrapherModel->newQuery();
+                $existPhotographerQuery
+                    ->limit(1)
+                    ->where('mptgName', $photographerName)
+                    ->where('mptgMsevId', $eventProps['msevId'])
+                    ->execute($photgrapherModel->getDb());
+                if (empty($existPhotographerQuery->count())) {
+                    $photographerProps = [
+                        'mptgMsevId' => $eventProps['msevId'],
+                        'mptgName' => $photographerName,
+                        'mptgCreatedClientId' => $requestAttributes['oauth_client_id'] ?? '',
+                        'mptgCreatedTime' => date('Y-m-d H:i:s'),
+                        'mptgUpdatedTime' => date('Y-m-d H:i:s'),
+                    ];
+                    $photgrapherModel->insert($photographerProps);
+                }
+            }
+
+            $this->fileTaggingModel->getDb()->commit();
         } catch (\Throwable $e) {
+            if ($this->fileTaggingModel->getDb()->inTransaction()) {
+                $this->fileTaggingModel->getDb()->rollBack();
+            }
             Logger::error('Failed to insert tagging: ' . $e);
             throw new ServerErrorException('Insert failed: ' . $e->getMessage(), 500);
         }
