@@ -1,13 +1,11 @@
 import 'zone.js/testing';
-import { getTestBed } from '@angular/core/testing';
-import {
-  BrowserDynamicTestingModule,
-  platformBrowserDynamicTesting
-} from '@angular/platform-browser-dynamic/testing';
+import { TestBed } from '@angular/core/testing';
+import { BrowserTestingModule } from '@angular/platform-browser/testing';
+import { platformBrowser } from '@angular/platform-browser';
 
-getTestBed().initTestEnvironment(
-  BrowserDynamicTestingModule,
-  platformBrowserDynamicTesting()
+TestBed.initTestEnvironment(
+  BrowserTestingModule,
+  platformBrowser()
 );
 
 const printedSuites = new Set<string>();
