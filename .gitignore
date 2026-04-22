@@ -18,3 +18,9 @@ __pycache__
 keys
 images
 exports
+
+node_modules
+dist
+out-tsc
+.angular
+public/tagging

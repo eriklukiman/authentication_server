@@ -1,0 +1,120 @@
+.image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  grid-auto-flow: dense;
+  gap: 4px;
+}
+
+.image-grid-item {
+  cursor: pointer;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  transition: box-shadow 0.2s;
+  outline: none;
+  background: #fff;
+}
+.image-grid-item:hover,
+.image-grid-item:focus-visible {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+}
+
+.thumb {
+  position: relative;
+  width: 100%;
+  height: 260px;
+  overflow: hidden;
+  border-radius: 10px 10px 0 0;
+  background: #000;
+  aspect-ratio: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-grid-item.landscape {
+  grid-column: span 2;
+}
+
+.image-grid-item.landscape .thumb {
+  height: 260px;
+}
+
+.image-grid-item.square .thumb {
+  height: 260px;
+}
+
+/* Portrait — fill the frame */
+.image-grid-item.portrait .thumb img,
+.image-grid img {
+  object-fit: cover;
+}
+
+/* Landscape & square also fill tile for collage-style layout */
+.image-grid-item.landscape .thumb img,
+.image-grid-item.square .thumb img {
+  object-fit: cover;
+}
+
+.image-grid img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  transform: scale(1);
+  transition: opacity 0.2s, transform 0.25s ease;
+  opacity: 0.7;
+}
+
+.image-grid-item:hover img,
+.image-grid-item:focus-visible img {
+  transform: scale(1.06);
+}
+
+.image-grid img.loaded {
+  opacity: 1;
+}
+
+.spinner {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border: 3px solid rgba(255, 255, 255, 0.25);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  z-index: 1;
+  pointer-events: none;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.meta {
+  display: none;
+}
+.meta strong { font-size: 13px; color: #111; }
+.meta span { font-size: 11px; color: #666; }
+
+.infinite-status {
+  text-align: center;
+  padding: 10px 6px 2px;
+  color: #666;
+  font-size: 12px;
+}
+
+@media (max-width: 740px) {
+  .image-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .thumb,
+  .image-grid-item.landscape .thumb,
+  .image-grid-item.square .thumb {
+    height: 190px;
+  }
+
+  .image-grid-item.landscape {
+    grid-column: span 2;
+  }
+}
