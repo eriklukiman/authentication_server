@@ -6,6 +6,7 @@ use Lukiman\AuthServer\Libraries\Exceptions\UploadException;
 use Lukiman\AuthServer\Libraries\Logger;
 use Lukiman\AuthServer\Libraries\M2MBase;
 use Lukiman\AuthServer\Models\Event;
+use Lukiman\AuthServer\Models\EventClient;
 use Lukiman\AuthServer\Models\FileTagging;
 use Lukiman\AuthServer\Models\Location;
 use Lukiman\AuthServer\Models\Photographer;
@@ -198,6 +199,7 @@ class UploadFile extends M2MBase {
         $this->fileTaggingModel->getDb()->beginTransaction();
         try {
             $requestAttributes = $this->psrRequest->getAttributes();
+            $clientId = $requestAttributes['oauth_client_id'] ?? '';
 
             $appVersion = $this->psrRequest->getHeaderLine("APP-VERSION") ?? '';
             $guiVersion = $this->psrRequest->getHeaderLine("GUI-VERSION") ?? '';
@@ -208,7 +210,7 @@ class UploadFile extends M2MBase {
                 $taggingFulltext = $data['mftgDescription'];
                 unset($data['mftgDescription']);
             }
-            $data['mftgClientId'] = $requestAttributes['oauth_client_id'] ?? '';
+            $data['mftgClientId'] = $clientId;
             $data['mftgAppVersion'] = $appVersion;
             $data['mftgGuiVersion'] = $guiVersion;
             $data['mftgMainVersion'] = $mainVersion;
@@ -263,6 +265,23 @@ class UploadFile extends M2MBase {
                     $eventProps['msevCreatedTime'] = date('Y-m-d H:i:s');
                     $eventProps['msevUpdatedTime'] = date('Y-m-d H:i:s');
                     $eventProps['msevId'] = $eventModel->insert($eventProps);
+                }
+
+                $eventClient = new EventClient();
+                $existQuery = $eventClient->newQuery();
+                $existQuery
+                    ->limit(1)
+                    ->where('evcaMsevId', $eventProps['msevId'])
+                    ->where('evcaClntId', $clientId)
+                    ->execute($eventClient->getDb());
+                if ($existQuery->count() === 0) {
+                    $eventClientProps = [
+                        'evcaMsevId' => $eventProps['msevId'],
+                        'evcaClntId' => $clientId,
+                        'evcaCreatedTime' => date('Y-m-d H:i:s'),
+                        'evcaUpdatedTime' => date('Y-m-d H:i:s'),
+                    ];
+                    $eventClient->insert($eventClientProps);
                 }
 
             }

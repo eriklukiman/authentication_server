@@ -1,0 +1,1 @@
+ALTER TABLE master_file_text ADD FULLTEXT INDEX idx_mftxText (mftxText);
