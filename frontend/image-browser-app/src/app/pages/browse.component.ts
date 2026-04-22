@@ -15,6 +15,7 @@ export class BrowseComponent implements OnInit, OnDestroy {
   private readonly imageService = inject(ImageService);
 
   clientId = '';
+  eventId = '';
   search = '';
   searchInput = '';
   selectedLocation = '';
@@ -23,9 +24,9 @@ export class BrowseComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.clientId = this.route.snapshot.paramMap.get('client_id') ?? '';
-
-    this.imageService.getEvents(this.clientId).subscribe((events) => {
-      this.locations = [...new Set(events.map((e) => e.location).filter(Boolean))];
+    this.eventId = this.route.snapshot.paramMap.get('event_id') ?? '';
+    this.imageService.getEventDetail(this.clientId, this.eventId).subscribe((events) => {
+      this.locations = events.locations.map(loc => loc.mlocName).filter(name => !!name);
     });
   }
 

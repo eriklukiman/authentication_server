@@ -1,0 +1,25 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Frontend: Serve and Debug",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "bun run start",
+      "cwd": "${workspaceFolder}/frontend/image-browser-app",
+      "serverReadyAction": {
+        "pattern": "Local:\\s+(https?://\\S+)",
+        "action": "startDebugging",
+        "name": "Frontend: Chrome"
+      }
+    },
+    {
+      "name": "Frontend: Chrome",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:4200",
+      "webRoot": "${workspaceFolder}/frontend/image-browser-app",
+      "sourceMaps": true
+    }
+  ]
+}

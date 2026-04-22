@@ -10,7 +10,7 @@
 
   <div class="event-grid">
     @for (event of events(); track event.id) {
-      <a class="event-card" [routerLink]="['/', clientId, 'browse']" [queryParams]="{ event: event.name }">
+      <a class="event-card" [routerLink]="['/', clientId, 'browse', event.name]">
         <img [src]="event.coverImageUrl" [alt]="event.name" loading="lazy" />
         <div class="event-info">
           <strong>{{ event.name }}</strong>
@@ -22,6 +22,4 @@
       </a>
     }
   </div>
-
-  <a class="browse-all" [routerLink]="['/', clientId, 'browse']">Browse all images &rarr;</a>
 </main>

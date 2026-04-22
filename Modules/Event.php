@@ -3,6 +3,7 @@
 namespace Lukiman\AuthServer\Modules;
 
 use Lukiman\AuthServer\Libraries\BaseApiModule;
+use Lukiman\AuthServer\Libraries\Logger;
 use Lukiman\Cores\Exception\ServerErrorException;
 use \Lukiman\Cores\Database\Query as Database_Query;
 use Lukiman\AuthServer\Models\Event as EventModel;
@@ -122,6 +123,7 @@ class Event extends BaseApiModule {
     }
 
     public function do_Photo(array $params) {
+        Logger::info("Path: " . json_encode($params));
         $clientId = $params[0] ?? null;
         $eventId = $params[1] ?? null;
 

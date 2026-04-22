@@ -1,4 +1,4 @@
-import { Component, HostListener, Input, OnChanges, OnDestroy, SimpleChanges, inject } from '@angular/core';
+import { Component, HostListener, Input, OnChanges, OnDestroy, SimpleChanges, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ImageItem, ImageService } from '../../services/image.service';
 import { LightboxComponent } from '../lightbox/lightbox.component';
@@ -20,8 +20,8 @@ export class ImageGridComponent implements OnChanges, OnDestroy {
 
   private readonly imageService = inject(ImageService);
 
-  images: ImageItem[] = [];
-  loading = false;
+  images = signal<ImageItem[]>([]);
+  loading = signal(false);
   selectedImage: ImageItem | null = null;
   readonly pageSize = 20;
   visibleCount = this.pageSize;
@@ -47,26 +47,31 @@ export class ImageGridComponent implements OnChanges, OnDestroy {
     this.imagesRequestSub?.unsubscribe();
 
     if (!this.clientId) {
-      this.images = [];
-      this.loading = false;
+      this.images.set([]);
+      this.loading.set(false);
       return;
     }
 
-    this.loading = true;
-    this.images = [];
+    if (!this.eventFilter) {
+      this.images.set([]);
+      this.loading.set(false);
+      return;
+    }
+
+    this.loading.set(true);
+    this.images.set([]);
     this.resetPagination();
-    this.imagesRequestSub = this.imageService.getImages(this.clientId, {
+    this.imagesRequestSub = this.imageService.getEventPhotos(this.clientId, this.eventFilter, {
       search: this.search,
       location: this.location
     }).subscribe({
       next: (data) => {
-        this.images = data;
+        console.log('Loaded images:', data);
+        this.images.set(data);
+        this.loading.set(false);
       },
       error: () => {
-        this.loading = false;
-      },
-      complete: () => {
-        this.loading = false;
+        this.loading.set(false);
       }
     });
   }
@@ -79,39 +84,9 @@ export class ImageGridComponent implements OnChanges, OnDestroy {
     this.visibleCount = this.pageSize;
   }
 
-  get filteredImages(): ImageItem[] {
-    const q = this.search.trim().toLowerCase();
-    return this.images.filter((img) => {
-      const byLocation = !this.location || img.location === this.location;
-      const byEvent = !this.eventFilter || img.eventName === this.eventFilter;
-      const bySearch =
-        !q ||
-        img.eventName.toLowerCase().includes(q) ||
-        img.location.toLowerCase().includes(q) ||
-        img.photographer.toLowerCase().includes(q);
-      return byLocation && byEvent && bySearch;
-    });
-  }
-
-  get visibleImages(): ImageItem[] {
-    return this.filteredImages.slice(0, this.visibleCount);
-  }
-
-  get hasMore(): boolean {
-    return this.visibleCount < this.filteredImages.length;
-  }
-
-  loadMore(): void {
-    if (!this.hasMore) {
-      return;
-    }
-
-    this.visibleCount = Math.min(this.visibleCount + this.pageSize, this.filteredImages.length);
-  }
-
   @HostListener('window:scroll')
   onWindowScroll(): void {
-    if (this.loading || !this.hasMore) {
+    if (this.loading()) {
       return;
     }
 
@@ -120,7 +95,7 @@ export class ImageGridComponent implements OnChanges, OnDestroy {
     const totalHeight = document.documentElement.scrollHeight;
 
     if (totalHeight - viewportBottom <= threshold) {
-      this.loadMore();
+      // this.loadMore();
     }
   }
 

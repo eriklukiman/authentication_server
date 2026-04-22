@@ -1,16 +1,19 @@
-<div class="fetch-status" *ngIf="loading">
+@if (loading()) {
+<div class="fetch-status">
   <span class="line-spinner" aria-hidden="true"></span>
   <span>Loading photos...</span>
 </div>
+}
 
 <div class="image-grid">
-  <app-image-grid-item
-    *ngFor="let image of visibleImages; trackBy: trackById"
-    [image]="image"
-    (opened)="openLightbox($event)"
-  />
+  @for (image of images(); track trackById) {
+    <app-image-grid-item
+      [image]="image"
+      (opened)="openLightbox($event)"
+    />
+  }
 </div>
 
-<div class="infinite-status" *ngIf="hasMore">Loading more photos as you scroll...</div>
+<!--div class="infinite-status" *ngIf="hasMore">Loading more photos as you scroll...</div-->
 
 <app-lightbox [image]="selectedImage" (closed)="closeLightbox()" />
