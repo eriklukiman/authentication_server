@@ -8,6 +8,8 @@ require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../config/app.php';
 
 // Framework bootstrapping
+
+use Lukiman\AuthServer\Libraries\Logger;
 use \Lukiman\Cores\Controller;
 use \Lukiman\Cores\Exception\Base as ExceptionBase;
 use \Nyholm\Psr7\Response;
@@ -93,6 +95,7 @@ if (!empty($fullPath) && $fullPath !== '/') {
         }
 
     } catch (\Throwable | ExceptionBase $e) {
+        Logger::error('Unhandled exception: ' . $e);
         if (!headers_sent()) {
             $httpCode = 500;
             $reflection = new \ReflectionClass($e);
