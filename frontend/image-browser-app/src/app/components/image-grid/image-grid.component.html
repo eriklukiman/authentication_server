@@ -1,5 +1,5 @@
 <div class="image-grid">
-  @for (image of images(); track trackById) {
+  @for (image of images(); track trackById($index, image)) {
     <app-image-grid-item
       [image]="image"
       (opened)="openLightbox($event)"
@@ -11,6 +11,12 @@
 <div class="fetch-status">
   <span class="line-spinner" aria-hidden="true"></span>
   <span>Loading photos...</span>
+</div>
+}
+
+@if (images().length === 0 && !loading()) {
+<div class="fetch-status">
+  <span>No photos found.</span>
 </div>
 }
 
