@@ -98,6 +98,8 @@ export interface ImageItem {
 export interface ImageQueryOptions {
   search?: string;
   location?: string;
+  page?: number;
+  max?: number;
 }
 
 const CLIENT_A = '3e62298e298bc8e6215ba38e9c60e0620ac0c081';
@@ -126,32 +128,19 @@ export class ImageService {
       .pipe(map((response) => response.data));
   }
 
-  getImages(clientId: string, options: ImageQueryOptions = {}): Observable<ImageItem[]> {
-    return this.getEvents(clientId).pipe(
-      switchMap((events) =>
-        events.length === 0
-          ? of([])
-          : from(events).pipe(
-              // Stream each event's photo list as soon as it arrives.
-              mergeMap((event) => this.getEventPhotos(clientId, event.name, options)),
-              scan((allPhotos, photos) => allPhotos.concat(photos), [] as ImageItem[])
-            )
-      ),
-      map((images) => images)
-    );
-  }
-
   getEventNames(clientId: string): Observable<string[]> {
     return this.getEvents(clientId).pipe(
       map((events) => [...new Set(events.map((event) => event.name))])
     );
   }
 
-  getEventPhotos(clientId: string, eventName: string, options: ImageQueryOptions): Observable<ImageItem[]> {
+  getEventPhotos(clientId: string, eventName: string, options: ImageQueryOptions): Observable<{ data: ImageItem[]; pagination: ApiPagination }> {
     const url = `${this.eventApiBase}/photo/${encodeURIComponent(clientId)}/${encodeURIComponent(eventName)}`;
     let params = new HttpParams().set('sorts[mftgId]', 'desc');
     const search = options.search?.trim();
     const location = options.location?.trim();
+    const page = options.page ?? 1;
+    const max = options.max ?? 20;
 
     if (search) {
       params = params.set('search', search);
@@ -160,9 +149,20 @@ export class ImageService {
       params = params.set('filters[mftgPhotoLocation]', location);
     }
 
+    if (page) {
+      params = params.set('page', String(page));
+    }
+
+    if (max) {
+      params = params.set('max', String(max));
+    }
+
     return this.http.get<PhotoListResponse>(url, { params }).pipe(
-      map((response) => response.data.map((photo) => this.mapPhoto(photo, clientId, eventName))),
-      catchError(() => of([]))
+      map((response) => ({
+        data: response.data.map((photo) => this.mapPhoto(photo, clientId, eventName)),
+        pagination: response.pagination
+      })),
+      catchError(() => of({ data: [], pagination: { page: 1, itemPerPage: max, totalPage: 1, data: 0, totalData: 0 } }))
     );
   }
 

@@ -1,10 +1,3 @@
-@if (loading()) {
-<div class="fetch-status">
-  <span class="line-spinner" aria-hidden="true"></span>
-  <span>Loading photos...</span>
-</div>
-}
-
 <div class="image-grid">
   @for (image of images(); track trackById) {
     <app-image-grid-item
@@ -13,6 +6,13 @@
     />
   }
 </div>
+
+@if (loading()) {
+<div class="fetch-status">
+  <span class="line-spinner" aria-hidden="true"></span>
+  <span>Loading photos...</span>
+</div>
+}
 
 <!--div class="infinite-status" *ngIf="hasMore">Loading more photos as you scroll...</div-->
 
