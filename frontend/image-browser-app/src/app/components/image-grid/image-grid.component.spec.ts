@@ -13,8 +13,12 @@ class MockImageService {
   }
 
   getEventPhotos(clientId: string, eventName: string, options?: { search?: string; location?: string }) {
-    // Return all images for the eventName and clientId
-    return of(mockImages.filter((img) => img.clientId === clientId && img.eventName === eventName));
+    // Return all images for the eventName and clientId, with pagination info
+    const data = mockImages.filter((img) => img.clientId === clientId && img.eventName === eventName);
+    return of({
+      data,
+      pagination: { page: 1, itemPerPage: 20, totalPage: 1, data: data.length, totalData: data.length }
+    });
   }
 }
 
@@ -118,33 +122,9 @@ describe('ImageGridComponent', () => {
     expect(status.querySelector('.line-spinner')).not.toBeNull();
   });
 
-  it('paginates visible images and loads more on scroll near bottom', () => {
-    // Pagination is now handled by visibleCount and images signal
-    const manyImages: ImageItem[] = Array.from({ length: 45 }, (_, i) => ({
-      id: i + 100,
-      clientId: 'client-a',
-      eventId: 1,
-      eventName: 'Semarang Heritage Walk',
-      location: 'Semarang',
-      photographer: 'Budi Santoso',
-      url: `https://example.com/many-${i}.jpg`,
-      alt: `many image ${i}`
-    }));
+  // Pagination is now handled by API, so this test is obsolete and removed.
 
-    component.images.set(manyImages);
-    component.visibleCount = component.pageSize;
-    expect(component.images().slice(0, component.visibleCount).length).toBe(component.pageSize);
-  });
-
-  it('resets pagination when eventFilter changes', () => {
-    component.clientId = 'client-a';
-    component.visibleCount = 40;
-    component.eventFilter = 'Semarang Heritage Walk';
-    component.ngOnChanges({
-      eventFilter: new SimpleChange('', 'Semarang Heritage Walk', false)
-    });
-    expect(component.visibleCount).toBe(component.pageSize);
-  });
+  // Pagination reset is now handled by API, so this test is obsolete and removed.
 
   it('passes search and location as API query options', () => {
     component.clientId = 'client-a';
@@ -161,6 +141,6 @@ describe('ImageGridComponent', () => {
       location: new SimpleChange('', 'Semarang', false)
     });
 
-    expect(spy).toHaveBeenCalledWith('client-a', 'PLN Industry Visit', { search: 'rita', location: 'Semarang' });
+    expect(spy).toHaveBeenCalledWith('client-a', 'PLN Industry Visit', jasmine.objectContaining({ search: 'rita', location: 'Semarang' }));
   });
 });

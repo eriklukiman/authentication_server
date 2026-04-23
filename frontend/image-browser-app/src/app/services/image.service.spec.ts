@@ -40,19 +40,11 @@ describe('ImageService', () => {
     });
   });
 
-  it('sends search and location query params for photo API', () => {
-    service.getImages(clientA, { search: 'meo', location: 'test' }).subscribe((images) => {
-      expect(images.length).toBe(1);
-      expect(images[0].url).toBe('http://example.com/filtered.jpg');
-    });
-
-    const listReq = httpMock.expectOne(`/event/${clientA}`);
-    listReq.flush({
-      data: [
-        { msevId: 2, msevName: 'PLN Industry Visit', msevCreatedTime: '2026-04-05 08:00:00', msevUpdatedTime: '2026-04-05 08:00:00' }
-      ],
-      pagination: { page: 1, itemPerPage: 20, totalPage: 1, data: 1, totalData: 1 },
-      status: { error: 0, errorCode: 0, message: '' }
+  it('fetches event photos with search and location query params', () => {
+    service.getEventPhotos(clientA, 'PLN Industry Visit', { search: 'meo', location: 'test' }).subscribe((result) => {
+      expect(result.data.length).toBe(1);
+      expect(result.data[0].url).toBe('http://example.com/filtered.jpg');
+      expect(result.pagination.page).toBe(1);
     });
 
     const photoReq = httpMock.expectOne((req) =>
