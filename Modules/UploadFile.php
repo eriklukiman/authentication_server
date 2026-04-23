@@ -208,8 +208,8 @@ class UploadFile extends M2MBase {
             $taggingFulltext = [];
             if (isset($data['mftgDescription']) && !empty($data['mftgDescription'])) {
                 $taggingFulltext = $data['mftgDescription'];
-                unset($data['mftgDescription']);
             }
+            unset($data['mftgDescription']);
             $data['mftgClientId'] = $clientId;
             $data['mftgAppVersion'] = $appVersion;
             $data['mftgGuiVersion'] = $guiVersion;
