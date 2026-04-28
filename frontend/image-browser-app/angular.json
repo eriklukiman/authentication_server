@@ -66,7 +66,14 @@
               "outputPath": {
                 "base": "dist",
                 "browser": ""
-              }
+              },
+              "assets": [
+                {
+                  "glob": "**/*",
+                  "input": "public",
+                  "ignore": [".htaccess"]
+                }
+              ]
             },
             "tagging": {
               "optimization": true,
