@@ -32,7 +32,11 @@
             "production": {
               "optimization": true,
               "outputHashing": "all",
-              "baseHref": "/tagging/"
+              "baseHref": "/tagging/",
+              "outputPath": {
+                "base": "../../public/tagging",
+                "browser": ""
+              }
             },
             "development": {
               "optimization": false,
@@ -42,7 +46,36 @@
                   "replace": "src/environments/environment.ts",
                   "with": "src/environments/environment.development.ts"
                 }
-              ]
+              ],
+              "baseHref": "/",
+              "outputPath": {
+                "base": "dist",
+                "browser": ""
+              }
+            },
+            "dist": {
+              "optimization": true,
+              "outputHashing": "all",
+              "baseHref": "/",
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
+                }
+              ],
+              "outputPath": {
+                "base": "dist",
+                "browser": ""
+              }
+            },
+            "tagging": {
+              "optimization": true,
+              "outputHashing": "all",
+              "baseHref": "/tagging/",
+              "outputPath": {
+                "base": "../../public/tagging",
+                "browser": ""
+              }
             }
           },
           "defaultConfiguration": "production"
