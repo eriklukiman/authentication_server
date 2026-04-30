@@ -22,7 +22,7 @@
   background: #1a1a1a;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 24px 60px rgba(0,0,0,.6);
+  box-shadow: 0 24px 60px rgb(67 67 67 / 60%);
 }
 
 /* ── toolbar ── */
@@ -147,6 +147,7 @@
   opacity: 0;
   user-select: none;
   pointer-events: none;
+  box-shadow: 0 8px 32px 8px rgba(0,0,0,0.55), 0 2px 8px 0 rgba(0,0,0,0.18);
 }
 
 .lb-image-wrap.is-loading img {
