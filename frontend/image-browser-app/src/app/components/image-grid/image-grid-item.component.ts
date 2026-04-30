@@ -50,16 +50,8 @@ export class ImageGridItemComponent implements OnChanges {
       return;
     }
 
-    const ratio = naturalWidth / naturalHeight;
-    if (ratio > 1.15) {
-      this.orientation = 'landscape';
-      return;
-    }
-    if (ratio < 0.87) {
-      this.orientation = 'portrait';
-      return;
-    }
-    this.orientation = 'square';
+    // Force all images to landscape orientation
+    this.orientation = 'landscape';
   }
 
   onImageError(): void {

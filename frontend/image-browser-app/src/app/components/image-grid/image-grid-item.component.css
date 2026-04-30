@@ -6,6 +6,7 @@
   grid-column: span 2;
 }
 
+
 .image-grid-item {
   cursor: pointer;
   border-radius: 10px;
@@ -21,14 +22,14 @@
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
 }
 
+
 .thumb {
   position: relative;
   width: 100%;
-  height: 260px;
+  height: 170px;
   overflow: hidden;
   border-radius: 10px 10px 0 0;
   background: #000;
-  aspect-ratio: auto;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -43,7 +44,8 @@
   width: 100%;
   height: 100%;
   display: block;
-  object-fit: cover;
+  object-fit: cover !important;
+  aspect-ratio: 16/9;
   transform: scale(1);
   transition: opacity 0.2s, transform 0.25s ease;
   opacity: 0.7;
@@ -88,8 +90,15 @@
   }
 }
 
+
 .meta {
-  display: none;
+  display: flex;
+  flex-direction: column;
+  padding: 8px 12px 10px 12px;
+  background: #fff;
+  border-top: 1px solid #eee;
+  min-height: 48px;
+  justify-content: center;
 }
 
 .meta strong {
@@ -103,13 +112,7 @@
 }
 
 @media (max-width: 740px) {
-  .thumb,
-  :host(.landscape) .thumb,
-  :host(.square) .thumb {
-    height: 190px;
-  }
-
-  :host(.landscape) {
-    grid-column: span 2;
+  .thumb {
+    height: 120px;
   }
 }
