@@ -134,18 +134,16 @@ describe('LightboxComponent', () => {
     expect(component.closed.emit).toHaveBeenCalled();
   });
 
-  it('starts file download when download is called', () => {
+  it('opens image in a new tab when download is called', () => {
     component.image = image;
 
-    const anchor = document.createElement('a');
-    const clickSpy = spyOn(anchor, 'click');
-    spyOn(document, 'createElement').and.returnValue(anchor);
+    const mockWindow = { opener: {} as unknown as Window } as Window;
+    const openSpy = spyOn(window, 'open').and.returnValue(mockWindow);
 
     component.download();
 
-    expect(anchor.href).toContain(image.url);
-    expect(anchor.download).toBe(image.alt);
-    expect(clickSpy).toHaveBeenCalled();
+    expect(openSpy).toHaveBeenCalledWith(image.url, '_blank', 'noopener,noreferrer');
+    expect(mockWindow.opener).toBeNull();
   });
 
   it('updates loading state on image load and error', () => {

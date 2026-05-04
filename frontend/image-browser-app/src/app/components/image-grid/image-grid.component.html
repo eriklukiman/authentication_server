@@ -1,3 +1,6 @@
+<div class="fetch-status">
+  <span>{{totalData}} photos uploaded.</span>
+</div>
 <div class="image-grid">
   @for (image of images(); track trackById($index, image)) {
     <app-image-grid-item

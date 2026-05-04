@@ -112,12 +112,13 @@ export class LightboxComponent implements OnChanges, OnDestroy {
 
   download(): void {
     if (!this.image) return;
-    const a = document.createElement('a');
-    a.href = this.image.url;
-    a.download = this.image.alt ?? 'image';
-    a.target = '_blank';
-    a.rel = 'noopener noreferrer';
-    a.click();
+
+    // Open in a separate tab to avoid navigation in the current page,
+    // and avoid CORS-related failures from programmatic download fetches.
+    const newTab = window.open(this.image.url, '_blank', 'noopener,noreferrer');
+    if (newTab) {
+      newTab.opener = null;
+    }
   }
 
   close(): void {

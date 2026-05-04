@@ -1,0 +1,64 @@
+:host {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+.gallery-host {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 16px;
+}
+
+.embed-help {
+  border: 1px solid #e2b4b4;
+  background: #fff6f6;
+  color: #7c1f1f;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+input {
+  display: block;
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 10px;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.location-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.location-badge {
+  border: 1px solid #d0d0d0;
+  background: #f4f4f4;
+  color: #333;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.location-badge:hover {
+  background: #e8e8e8;
+}
+
+.location-badge.active {
+  background: #111;
+  color: #fff;
+  border-color: #111;
+}
+
+app-image-grid {
+  display: block;
+  margin-top: 16px;
+}

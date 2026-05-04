@@ -116,10 +116,11 @@ describe('ImageGridComponent', () => {
     component.loading.set(true);
     fixture.detectChanges();
 
-    const status = fixture.nativeElement.querySelector('.fetch-status') as HTMLElement;
+    const spinner = fixture.nativeElement.querySelector('.line-spinner') as HTMLElement;
+    const status = spinner?.closest('.fetch-status') as HTMLElement;
     expect(status).not.toBeNull();
     expect(status.textContent).toContain('Loading photos...');
-    expect(status.querySelector('.line-spinner')).not.toBeNull();
+    expect(spinner).not.toBeNull();
   });
 
   // Pagination is now handled by API, so this test is obsolete and removed.

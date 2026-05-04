@@ -26,6 +26,7 @@ export class ImageGridComponent implements OnChanges, OnDestroy {
   readonly pageSize = 50;
   currentPage = 1;
   totalPages = 1;
+  totalData = 0;
   isLoadingMore = false;
   hasMore = false;
   private imagesRequestSub: Subscription | null = null;
@@ -64,6 +65,7 @@ export class ImageGridComponent implements OnChanges, OnDestroy {
         console.log('Received response:', response);
         const images = response.data;
         const pagination = response.pagination || { page: 1, totalPage: 1 };
+        this.totalData = pagination.totalData || 0;
         this.hasMore = pagination.page < pagination.totalPage;
         if (replace || page === 1) {
           this.images.set(images);

@@ -1,0 +1,45 @@
+<main class="gallery-host" [style.background]="background || ''">
+  @if (!clientId || !eventId) {
+    <div class="embed-help">
+      Missing required attributes: <strong>client-id</strong> and <strong>event-id</strong>.
+      Optional: <strong>api-base-url</strong> for cross-origin API host.
+    </div>
+  } @else {
+    <input
+      type="text"
+      placeholder="Search your BIB here..."
+      [(ngModel)]="searchInput"
+      (ngModelChange)="onSearchChange($event)"
+    />
+
+    @if (locations.length > 0) {
+      <div class="location-badges">
+        <button
+          type="button"
+          class="location-badge"
+          [class.active]="selectedLocation === ''"
+          (click)="selectLocation('')"
+        >
+          All locations
+        </button>
+        @for (location of locations; track location) {
+          <button
+            type="button"
+            class="location-badge"
+            [class.active]="selectedLocation === location"
+            (click)="selectLocation(location)"
+          >
+            {{ location }}
+          </button>
+        }
+      </div>
+    }
+
+    <app-image-grid
+      [clientId]="clientId"
+      [eventFilter]="eventId"
+      [search]="search"
+      [location]="selectedLocation"
+    />
+  }
+</main>

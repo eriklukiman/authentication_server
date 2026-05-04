@@ -83,6 +83,17 @@
                 "base": "../../public/tagging",
                 "browser": ""
               }
+            },
+            "web-element": {
+              "optimization": true,
+              "outputHashing": "none",
+              "baseHref": "/",
+              "index": "src/index.element.html",
+              "browser": "src/main.element.ts",
+              "outputPath": {
+                "base": "dist-web-element",
+                "browser": ""
+              }
             }
           },
           "defaultConfiguration": "production"

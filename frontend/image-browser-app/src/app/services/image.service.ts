@@ -108,23 +108,24 @@ const CLIENT_B = '42cd6d6b808ebf1d159d85a2354178315d265a12';
 @Injectable({ providedIn: 'root' })
 export class ImageService {
   private readonly http = inject(HttpClient);
-  private readonly eventApiBase = this.buildEventApiBase();
 
   private readonly events: EventItem[] = [];
 
   private readonly images: ImageItem[] = [];
 
   getEvents(clientId: string): Observable<EventItem[]> {
+    const eventApiBase = this.buildEventApiBase();
     return this.http
-      .get<EventListResponse>(`${this.eventApiBase}/${encodeURIComponent(clientId)}`)
+      .get<EventListResponse>(`${eventApiBase}/${encodeURIComponent(clientId)}`)
       .pipe(
         map((response) => this.mapEvents(response.data, clientId))
       );
   }
 
   getEventDetail(clientId: string, eventId: number | string): Observable<EventDetail> {
+    const eventApiBase = this.buildEventApiBase();
     return this.http
-      .get<EventDetailResponse>(`${this.eventApiBase}/${encodeURIComponent(clientId)}/${encodeURIComponent(String(eventId))}`)
+      .get<EventDetailResponse>(`${eventApiBase}/${encodeURIComponent(clientId)}/${encodeURIComponent(String(eventId))}`)
       .pipe(map((response) => response.data));
   }
 
@@ -135,7 +136,8 @@ export class ImageService {
   }
 
   getEventPhotos(clientId: string, eventName: string, options: ImageQueryOptions): Observable<{ data: ImageItem[]; pagination: ApiPagination }> {
-    const url = `${this.eventApiBase}/photo/${encodeURIComponent(clientId)}/${encodeURIComponent(eventName)}`;
+    const eventApiBase = this.buildEventApiBase();
+    const url = `${eventApiBase}/photo/${encodeURIComponent(clientId)}/${encodeURIComponent(eventName)}`;
     let params = new HttpParams().set('sorts[mftgId]', 'desc');
     const search = options.search?.trim();
     const location = options.location?.trim();
@@ -194,7 +196,9 @@ export class ImageService {
   }
 
   private buildEventApiBase(): string {
-    const base = environment.apiBaseUrl.replace(/\/$/, '');
+    const root = globalThis as { __IMAGE_BROWSER_API_BASE_URL?: string };
+    const runtimeBase = (root.__IMAGE_BROWSER_API_BASE_URL || '').trim();
+    const base = (runtimeBase || environment.apiBaseUrl).replace(/\/$/, '');
     return `${base}/event`;
   }
 }
