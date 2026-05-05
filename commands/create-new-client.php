@@ -32,15 +32,15 @@ try {
     //      with the name "private.pem" and "public.pem"
 
     // Make dir if not exists
-    // Permission: 0744 (owner can read, write, execute; group and others can read and execute)
+    // Permission: 0755 (owner can read, write, execute; group and others can read and execute)
 
     // Make dir if not exists
     if (!file_exists(KEY_DIR)) {
-        mkdir(KEY_DIR, 0744, true);
+        mkdir(KEY_DIR, 0755, true);
     }
 
     if (!file_exists(KEY_DIR. "/".$clientId) && !is_dir(KEY_DIR. "/".$clientId)) {
-        mkdir(KEY_DIR. "/".$clientId, 0744, true);
+        mkdir(KEY_DIR. "/".$clientId, 0755, true);
     }
 
     $dir = realpath(KEY_DIR. "/".$clientId);
