@@ -93,7 +93,30 @@
               "outputPath": {
                 "base": "dist-web-element",
                 "browser": ""
-              }
+              },
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.element.prod.ts"
+                }
+              ]
+            },
+            "web-element-dev": {
+              "optimization": true,
+              "outputHashing": "none",
+              "baseHref": "/",
+              "index": "src/index.element.html",
+              "browser": "src/main.element.ts",
+              "outputPath": {
+                "base": "dist-web-element",
+                "browser": ""
+              },
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.element.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"

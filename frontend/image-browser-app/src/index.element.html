@@ -5,10 +5,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Image Browser Gallery Element</title>
 </head>
-<body>
-  <image-browser-gallery
-    client-id="3e62298e298bc8e6215ba38e9c60e0620ac0c081"
-    event-id="esteh mania run"
-  ></image-browser-gallery>
+<body style="padding: 1rem;">
+    <h1>Image Browser Gallery Web Component</h1>
+    <p>This is a demo page for the <code>&lt;image-browser-gallery&gt;</code> web component. 
+        The component is designed to be embedded in any web page and will display a gallery 
+        of photos for a specified client and event.</p>
+    <p>Below is an example of how to use the <code>&lt;image-browser-gallery&gt;</code> component. 
+        Make sure to replace the <code>client-id</code> and <code>event-id</code> attributes with 
+        valid values to see the gallery in action.</p>
+    <textarea style="width: 100%;" rows="15" readonly>
+        <!-- Include the web component's CSS and JS files -->
+        <link rel="stylesheet" href="https://photos.wish.co.id/web-element/styles.css">
+        <script src="https://photos.wish.co.id/web-element/main.js"></script>
+        <script src="https://photos.wish.co.id/web-element/polyfills.js"></script>
+
+        <!-- Put here at body -->
+        <image-browser-gallery
+            client-id="ff62298e298b55555ba38e9c60e055550c081"
+            event-id="wish run 2025"
+        >
+        </image-browser-gallery>
+    </textarea>
 </body>
 </html>

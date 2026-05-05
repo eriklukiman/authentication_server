@@ -11,18 +11,15 @@ class MockImageService {
     return of<EventItem[]>([
       {
         id: 1, clientId: 'client-a', name: 'Semarang Heritage Walk',
-        date: '2026-03-10', location: 'Semarang',
-        photographer: 'Budi Santoso', coverImageUrl: '', imageCount: 6
+        date: '2026-03-10', coverImageUrl: '', photoCount: 6
       },
       {
         id: 2, clientId: 'client-a', name: 'PLN Industry Visit',
-        date: '2026-04-05', location: 'Jakarta',
-        photographer: 'Rina Wijaya', coverImageUrl: '', imageCount: 5
+        date: '2026-04-05', coverImageUrl: '', photoCount: 5
       },
       {
         id: 3, clientId: 'client-a', name: 'Semarang Heritage Walk',
-        date: '2026-03-10', location: 'Semarang',
-        photographer: 'Budi Santoso', coverImageUrl: '', imageCount: 4
+        date: '2026-03-10', coverImageUrl: '', photoCount: 4
       }
     ]);
   }

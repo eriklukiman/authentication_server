@@ -11,13 +11,10 @@
   <div class="event-grid">
     @for (event of events(); track event.id) {
       <a class="event-card" [routerLink]="['/', clientId, 'browse', event.name]">
-        <img [src]="event.coverImageUrl" [alt]="event.name" loading="lazy" />
         <div class="event-info">
           <strong>{{ event.name }}</strong>
           <span>{{ event.date | date:'mediumDate' }}</span>
-          <span>{{ event.location }}</span>
-          <span>{{ event.photographer }}</span>
-          <span class="count">{{ event.imageCount }} photos</span>
+          <span class="count">{{ event.photoCount | number:'1.0-0' }} photos</span>
         </div>
       </a>
     }

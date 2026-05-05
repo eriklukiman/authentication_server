@@ -11,20 +11,16 @@ const mockEvents: EventItem[] = [
     clientId: 'client-a',
     name: 'Semarang Heritage Walk',
     date: '2026-03-10',
-    location: 'Semarang',
-    photographer: 'Budi Santoso',
     coverImageUrl: 'https://example.com/cover1.jpg',
-    imageCount: 6
+    photoCount: 6
   },
   {
     id: 2,
     clientId: 'client-a',
     name: 'PLN Industry Visit',
     date: '2026-04-05',
-    location: 'Jakarta',
-    photographer: 'Rina Wijaya',
     coverImageUrl: 'https://example.com/cover2.jpg',
-    imageCount: 5
+    photoCount: 5
   }
 ];
 

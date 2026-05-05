@@ -8,6 +8,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "npx ng test --watch=false --browsers=ChromeHeadless",
     "build:web-element": "bun run ng build --configuration=web-element",
+    "build:web-element:dev": "bun run ng build --configuration=web-element-dev",
     "build:dist": "bun run ng build --configuration=dist",
     "build:tagging": "bun run ng build --configuration=tagging",
     "build:prod": "bun run ng build --configuration=production",

@@ -9,10 +9,8 @@ export interface EventItem {
   clientId: string;
   name: string;
   date: string;
-  location: string;
-  photographer: string;
   coverImageUrl: string;
-  imageCount: number;
+  photoCount: number;
 }
 
 interface ApiStatus {
@@ -34,6 +32,7 @@ interface ApiEvent {
   msevName: string;
   msevCreatedTime: string;
   msevUpdatedTime: string;
+  photoCount: number;
 }
 
 export interface EventLocation {
@@ -188,10 +187,8 @@ export class ImageService {
       clientId,
       name: event.msevName,
       date: event.msevCreatedTime,
-      location: 'Unknown',
-      photographer: 'Unknown',
-      coverImageUrl: `https://picsum.photos/seed/event-${event.msevId}/800/600`,
-      imageCount: 0
+      coverImageUrl: '',
+      photoCount: event.photoCount || 0
     }));
   }
 
