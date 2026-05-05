@@ -8,7 +8,7 @@ return [
     'port' => DB_PORT,
     'user' => DB_USER,
     'password' => DB_PASS,
-    'database' => 'auth_server', // Hardcoding auth_server to be sure, or use DB_NAME
+    'database' => DB_NAME, // Hardcoding auth_server to be sure, or use DB_NAME
     'timeout' => 2,
     'options' => [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
