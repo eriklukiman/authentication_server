@@ -1,5 +1,5 @@
 import { Component, HostListener, Input, OnChanges, OnDestroy, SimpleChanges, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DecimalPipe } from '@angular/common';
 import { ImageItem, ImageService } from '../../services/image.service';
 import { LightboxComponent } from '../lightbox/lightbox.component';
 import { Subscription } from 'rxjs';
@@ -8,7 +8,7 @@ import { ImageGridItemComponent } from './image-grid-item.component';
 @Component({
   selector: 'app-image-grid',
   standalone: true,
-  imports: [CommonModule, LightboxComponent, ImageGridItemComponent],
+  imports: [CommonModule, LightboxComponent, ImageGridItemComponent, DecimalPipe],
   templateUrl: './image-grid.component.html',
   styleUrl: './image-grid.component.css'
 })

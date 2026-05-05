@@ -1,5 +1,5 @@
 <div class="fetch-status">
-  <span>{{totalData}} photos uploaded.</span>
+  <span>{{totalData | number:'1.0-0' }} photos uploaded.</span>
 </div>
 <div class="image-grid">
   @for (image of images(); track trackById($index, image)) {
