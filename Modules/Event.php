@@ -7,12 +7,55 @@ use Lukiman\AuthServer\Libraries\Logger;
 use Lukiman\Cores\Exception\ServerErrorException;
 use \Lukiman\Cores\Database\Query as Database_Query;
 use Lukiman\AuthServer\Models\Event as EventModel;
-use Lukiman\AuthServer\Models\EventClient;
+use Lukiman\AuthServer\Models\ClientAllowedHost;
 use Lukiman\AuthServer\Models\FileTagging;
 use Lukiman\AuthServer\Models\Location;
 use Lukiman\AuthServer\Models\TaggingText;
 
 class Event extends BaseApiModule {
+
+    /**
+     * Apply CORS for gallery embed usage on Event endpoints only.
+     */
+    private function embedCorsHeaders(string $clientId): void {
+        $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+        if (empty($origin)) {
+            return;
+        }
+
+        $uriScheme = $this->request->getUri()->getScheme();
+        $uriHost = $this->request->getUri()->getHost();
+        $uriPort = $this->request->getUri()->getPort();
+
+        if ($uriPort === 80 || $uriPort === 443) {
+            $uriPort = null;
+        }
+
+        $isSameOrigin = $origin === ($uriScheme . '://' . $uriHost . ($uriPort ? ':' . $uriPort : ''));
+
+        if ($isSameOrigin) {
+            return;
+        }
+
+        $allowedHostModel = new ClientAllowedHost();
+        $originQuery = Database_Query::Select($allowedHostModel->getTable())
+            ->limit(1)
+            ->where('claoClientId', $clientId)
+            ->where('claoOrigin', $origin)
+            ->execute($allowedHostModel->getDb());
+
+        if ($originQuery->count() === 0) {
+            return;
+        }
+
+        $this->addHeaders([
+            'Vary' => 'Origin',
+            'Access-Control-Allow-Origin' => $origin,
+            'Access-Control-Allow-Methods' => 'GET, OPTIONS',
+            'Access-Control-Allow-Headers' => 'Content-Type, Authorization, X-Requested-With',
+            'Access-Control-Max-Age' => 600
+        ]);
+    }
 
     /**
      * Handle GET request for event resources by client.
@@ -48,7 +91,7 @@ class Event extends BaseApiModule {
     public function do_Index(array $params) {
         $method = strtolower($this->getRequest()->getMethod());
 
-        if ($method != 'get') {
+        if ($method != 'get' && $method != 'options') {
             throw new ServerErrorException('Method not allowed', 405);
         }
     
@@ -57,6 +100,11 @@ class Event extends BaseApiModule {
 
         if (empty($clientId)) {
             throw new ServerErrorException('Client ID is required');
+        }
+
+        $this->embedCorsHeaders($clientId);
+        if ($method == 'options') {
+            return [];
         }
 
         $eventModel = new EventModel();
@@ -115,6 +163,15 @@ class Event extends BaseApiModule {
                 $v = (array) $v;
                 $eventData[] = $v;
             }
+
+            $events = array_map(fn($event) => $event['msevName'], $eventData);
+            $photoEvents = $this->getTotalPhotosByEvent($events);
+
+            $eventData = array_map(function ($event) use ($photoEvents) {
+                $event['photoCount'] = $photoEvents[$event['msevName']] ?? 0;
+                return $event;
+            }, $eventData);
+
             $returnData['data'] = $eventData;
             $returnData['pagination'] = $eventQ->getGridInfo();
         }
@@ -122,13 +179,46 @@ class Event extends BaseApiModule {
         return $returnData;
     }
 
+    private function getTotalPhotosByEvent(array $eventIds): array {
+        if (empty($eventIds)) {
+            return [];
+        }
+
+        $model = new FileTagging();
+        $q = Database_Query::Select($model->getTable());
+        $q->columns(['mftgEventName', 'COUNT(*) as photoCount']);
+        $q->where('mftgEventName', $eventIds, 'IN');
+        $q->group('mftgEventName');
+
+        $data = $q->execute($model->getDb());
+        $counts = [];
+        while ($v = $data->next()) {
+            $v = (array) $v;
+            $counts[$v['mftgEventName']] = (int) $v['photoCount'];
+        }
+        return $counts;
+    }
+
     public function do_Photo(array $params) {
+
+        $method = strtolower($this->getRequest()->getMethod());
+
+        if ($method != 'get' && $method != 'options') {
+            throw new ServerErrorException('Method not allowed', 405);
+        }
+
         Logger::info("Path: " . json_encode($params));
         $clientId = $params[0] ?? null;
         $eventId = $params[1] ?? null;
 
         if (empty($clientId)) {
             throw new ServerErrorException('Client ID is required');
+        }
+
+        $this->embedCorsHeaders($clientId);
+
+        if ($method == 'options') {
+            return [];
         }
 
         $query = $this->request->getGetVars();
