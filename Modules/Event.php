@@ -248,16 +248,6 @@ class Event extends BaseApiModule {
 			}
 		}
 
-        if (isset($query['search']) && !empty($query['search'])) {
-            $search = trim(str_replace('*', '', $query['search']));
-            $searchBoolean = $model->getDb()->quote($search . '*');
-            $q->where("EXISTS(
-                SELECT 1 FROM {$textModel->getTable()} AS tt
-                WHERE tt.mftxId = {$model->getTable()}.mftgId
-                AND MATCH(tt.mftxText) AGAINST ({$searchBoolean} IN BOOLEAN MODE)
-            )");
-        }
-
         // Join to event, event_client_association, and filter by clientId and eventId
         $q->join('master_events as ev', 'ev.msevName = mftgEventName', 'INNER');
         $q->join("event_client_association AS evca", "evca.evcaMsevId = ev.msevId", "INNER");
@@ -268,6 +258,16 @@ class Event extends BaseApiModule {
             } else {
                 $q->where("ev.msevName", urldecode($eventId));
             }
+        }
+
+        if (isset($query['search']) && !empty($query['search'])) {
+            $search = $query['search'];
+            $likeSearch = $model->getDb()->quote('%' . $search . '%');
+            $q->where("EXISTS(
+                SELECT 1 FROM {$textModel->getTable()} AS tt
+                WHERE tt.mftxId = {$model->getTable()}.mftgId
+                AND tt.mftxText LIKE {$likeSearch})
+            )");
         }
 
         $data = $q->execute($model->getDb());
