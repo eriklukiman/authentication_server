@@ -266,7 +266,7 @@ class Event extends BaseApiModule {
             $q->where("EXISTS(
                 SELECT 1 FROM {$textModel->getTable()} AS tt
                 WHERE tt.mftxId = {$model->getTable()}.mftgId
-                AND tt.mftxText LIKE {$likeSearch})
+                AND tt.mftxText LIKE {$likeSearch}
             )");
         }
 
