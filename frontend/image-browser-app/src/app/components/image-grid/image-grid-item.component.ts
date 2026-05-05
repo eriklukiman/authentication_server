@@ -58,6 +58,6 @@ export class ImageGridItemComponent implements OnChanges {
     this.loading = false;
     this.failed = true;
     this.imageLoaded = false;
-    this.orientation = 'square';
+    this.orientation = 'landscape';
   }
 }
