@@ -6,6 +6,13 @@
   box-sizing: border-box;
 }
 
+/* Prevent lone or paired items from stretching to fill the full row */
+.image-grid > app-image-grid-item:only-child,
+.image-grid > app-image-grid-item:first-child:nth-last-child(2),
+.image-grid > app-image-grid-item:first-child:nth-last-child(2) ~ app-image-grid-item {
+  max-width: 480px;
+}
+
 .fetch-status {
   display: flex;
   align-items: center;
