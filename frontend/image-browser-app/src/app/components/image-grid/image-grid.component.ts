@@ -1,4 +1,4 @@
-import { Component, HostListener, Input, OnChanges, OnDestroy, SimpleChanges, inject, signal } from '@angular/core';
+import { Component, AfterViewInit, ElementRef, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild, inject, signal } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { ImageItem, ImageService } from '../../services/image.service';
 import { LightboxComponent } from '../lightbox/lightbox.component';
@@ -12,11 +12,13 @@ import { ImageGridItemComponent } from './image-grid-item.component';
   templateUrl: './image-grid.component.html',
   styleUrl: './image-grid.component.css'
 })
-export class ImageGridComponent implements OnChanges, OnDestroy {
+export class ImageGridComponent implements OnChanges, AfterViewInit, OnDestroy {
   @Input() clientId = '';
   @Input() search = '';
   @Input() location = '';
   @Input() eventFilter = '';
+
+  @ViewChild('scrollSentinel') scrollSentinel!: ElementRef<HTMLElement>;
 
   private readonly imageService = inject(ImageService);
 
@@ -30,12 +32,32 @@ export class ImageGridComponent implements OnChanges, OnDestroy {
   isLoadingMore = false;
   hasMore = false;
   private imagesRequestSub: Subscription | null = null;
+  private intersectionObserver: IntersectionObserver | null = null;
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['clientId'] || changes['search'] || changes['location'] || changes['eventFilter']) {
       this.resetPagination();
       this.loadImages(1, true);
     }
+  }
+
+  ngAfterViewInit(): void {
+    this.setupScrollObserver();
+  }
+
+  private setupScrollObserver(): void {
+    if (!('IntersectionObserver' in window) || !this.scrollSentinel?.nativeElement) {
+      return;
+    }
+    this.intersectionObserver = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && this.hasMore && !this.loading()) {
+          this.loadMore();
+        }
+      },
+      { rootMargin: '200px', threshold: 0 }
+    );
+    this.intersectionObserver.observe(this.scrollSentinel.nativeElement);
   }
 
   private loadImages(page = 1, replace = false): void {
@@ -62,7 +84,6 @@ export class ImageGridComponent implements OnChanges, OnDestroy {
       max: this.pageSize
     }).subscribe({
       next: (response) => {
-        console.log('Received response:', response);
         const images = response.data;
         const pagination = response.pagination || { page: 1, totalPage: 1 };
         this.totalData = pagination.totalData || 0;
@@ -84,6 +105,7 @@ export class ImageGridComponent implements OnChanges, OnDestroy {
 
   ngOnDestroy(): void {
     this.imagesRequestSub?.unsubscribe();
+    this.intersectionObserver?.disconnect();
   }
 
   private resetPagination(): void {
@@ -91,30 +113,10 @@ export class ImageGridComponent implements OnChanges, OnDestroy {
     this.totalPages = 1;
   }
 
-  @HostListener('window:scroll')
-  onWindowScroll(): void {
+  loadMore(): void {
     if (this.loading() || this.currentPage >= this.totalPages) {
       return;
     }
-
-    console.log('Scroll event detected');
-
-    const threshold = 320;
-    const viewportBottom = window.innerHeight + window.scrollY;
-    const totalHeight = document.documentElement.scrollHeight;
-
-    console.log(`Viewport bottom: ${viewportBottom}, Total height: ${totalHeight}, Threshold: ${threshold}`);
-
-    if (totalHeight - viewportBottom <= threshold && this.hasMore) {
-      this.loadMore();
-    }
-  }
-
-  loadMore(): void {
-    if (this.loading() || this.isLoadingMore || this.currentPage >= this.totalPages) {
-      return;
-    }
-    this.loading.set(true);
     this.loadImages(this.currentPage + 1, false);
   }
 

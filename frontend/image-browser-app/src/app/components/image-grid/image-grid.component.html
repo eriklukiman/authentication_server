@@ -25,4 +25,6 @@
 
 <!--div class="infinite-status" *ngIf="hasMore">Loading more photos as you scroll...</div-->
 
+<div #scrollSentinel class="scroll-sentinel" aria-hidden="true"></div>
+
 <app-lightbox [image]="selectedImage" (closed)="closeLightbox()" />
