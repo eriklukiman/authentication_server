@@ -36,9 +36,33 @@ class Images extends BaseApiModule
             throw new NotFoundException('File not found', 404);
         }
 
-        // Serve file with chunks 8KB to display in browser
+        // Cache headers — use file mtime + size for a fast, stable ETag
+        $lastModified = filemtime($filePath);
+        $fileSize     = filesize($filePath);
+        $etag         = '"' . md5($filePath . $lastModified . $fileSize) . '"';
+
+        header('Cache-Control: public, max-age=31536000, immutable');
+        header('Expires: ' . gmdate('D, d M Y H:i:s', time() + 31536000) . ' GMT');
+        header('Last-Modified: ' . gmdate('D, d M Y H:i:s', $lastModified) . ' GMT');
+        header('ETag: ' . $etag);
+
+        // Honour conditional requests — return 304 if browser copy is still fresh
+        $ifNoneMatch     = $_SERVER['HTTP_IF_NONE_MATCH'] ?? '';
+        $ifModifiedSince = $_SERVER['HTTP_IF_MODIFIED_SINCE'] ?? '';
+
+        if ($ifNoneMatch && $ifNoneMatch === $etag) {
+            http_response_code(304);
+            exit;
+        }
+
+        if (!$ifNoneMatch && $ifModifiedSince && strtotime($ifModifiedSince) >= $lastModified) {
+            http_response_code(304);
+            exit;
+        }
+
+        // Serve file
         header('Content-Type: ' . mime_content_type($filePath));
-        header('Content-Length: ' . filesize($filePath));
+        header('Content-Length: ' . $fileSize);
         header('Content-Disposition: inline; filename="' . basename($filePath) . '"');
         readfile($filePath);
         exit;
