@@ -87,6 +87,7 @@
             "web-element": {
               "optimization": true,
               "outputHashing": "none",
+              "polyfills": [],
               "baseHref": "/",
               "index": "src/index.element.html",
               "browser": "src/main.element.ts",
@@ -104,6 +105,7 @@
             "web-element-dev": {
               "optimization": true,
               "outputHashing": "none",
+              "polyfills": [],
               "baseHref": "/",
               "index": "src/index.element.html",
               "browser": "src/main.element.ts",

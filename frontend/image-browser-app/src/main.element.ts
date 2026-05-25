@@ -1,3 +1,4 @@
+import 'zone.js';
 import { provideHttpClient } from '@angular/common/http';
 import { createCustomElement } from '@angular/elements';
 import { createApplication } from '@angular/platform-browser';
