@@ -27,7 +27,10 @@
             "Lukiman\\AuthServer\\Models\\": "Models/",
             "Lukiman\\AuthServer\\Libraries\\": "Libraries/",
             "Lukiman\\AuthServer\\Config\\": "config/"
-        }
+        },
+        "files": [
+            "Libraries/helper.php"
+        ]
     },
     "authors": [
         {
