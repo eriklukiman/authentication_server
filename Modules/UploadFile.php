@@ -43,6 +43,33 @@ class UploadFile extends M2MBase {
         }
     }
 
+    public function do_Delete_Photo(array $path) {
+        // Input example: ["mias", "miau", "mau", "RsGSXOYi0JL.png"]
+        
+        // it is dangerous function, let's define again later when we need it, for now just return not implemented
+        throw new ServerErrorException("Method not yet implemented", 501);
+        
+        $method = strtolower($this->psrRequest->getMethod());
+        if ($method != 'delete') {
+            throw new ServerErrorException('Method not allowed', 405);
+        }
+        Logger::info("Path: " . json_encode($path));
+        $filePath = photoUrlToPath(implode('/', $path));
+        if (!file_exists($filePath)) {
+            Logger::info("Path: " . implode('/', $path));
+            Logger::error('File not found: ' . $filePath);
+            throw new ServerErrorException('File not found', 404);
+        }
+        if (!unlink($filePath)) {
+            Logger::error('Failed to delete file: ' . $filePath);
+            throw new ServerErrorException('Failed to delete file', 500);
+        }
+        return [
+            'status' => 'success',
+            'message' => 'File deleted successfully',
+        ];
+    }
+
     public function uploadPhoto(mixed $param, array $properties) {
         if (!is_array($param)) {
             throw new ServerErrorException('Invalid parameter', 400);
@@ -352,7 +379,24 @@ class UploadFile extends M2MBase {
         }
 
         try {
-            $this->fileTaggingModel->delete($id);
+            $taggingData = $this->fileTaggingModel->read($id, ['mftgClientId' => $this->psrRequest->getAttribute('oauth_client_id')]);
+            if (empty($taggingData[$this->fileTaggingModel->getPrimaryKey()])) {
+                return [
+                    'status' => 'success',
+                    'message' => 'Record already deleted',
+                    'data' => [
+                        'mftgId' => (int) $id,
+                    ],
+                ];
+            }
+
+            $filePath = photoUrlToPath($taggingData['mftgUrl']);
+            if (file_exists($filePath) && is_file($filePath)) {
+                if (!unlink($filePath)) {
+                    Logger::error('Failed to delete file: ' . $filePath);
+                }
+            }
+            $this->fileTaggingModel->delete($id, ['mftgClientId' => $this->psrRequest->getAttribute('oauth_client_id')]);
             $this->taggingTextModel->delete($id);
         } catch (\Throwable $e) {
             Logger::error('Failed to delete tagging: ' . $e);
