@@ -20,6 +20,12 @@
       "url": "http://localhost:4200",
       "webRoot": "${workspaceFolder}/frontend/image-browser-app",
       "sourceMaps": true
+    },
+    {
+      "name": "PHP - Listen Xdebug",
+      "type": "php",
+      "request": "launch",
+      "port": 9003
     }
   ]
 }
