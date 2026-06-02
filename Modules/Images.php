@@ -41,8 +41,10 @@ class Images extends BaseApiModule
         $fileSize     = filesize($filePath);
         $etag         = '"' . md5($filePath . $lastModified . $fileSize) . '"';
 
-        header('Cache-Control: public, max-age=31536000, immutable');
-        header('Expires: ' . gmdate('D, d M Y H:i:s', time() + 31536000) . ' GMT');
+        $photoCacheTtl = defined('PHOTO_CACHE_TTL') ? PHOTO_CACHE_TTL : 3600 * 12; // Default to 12 hours if not defined
+
+        header('Cache-Control: public, max-age=' . $photoCacheTtl . ', immutable');
+        header('Expires: ' . gmdate('D, d M Y H:i:s', time() + $photoCacheTtl) . ' GMT');
         header('Last-Modified: ' . gmdate('D, d M Y H:i:s', $lastModified) . ' GMT');
         header('ETag: ' . $etag);
 

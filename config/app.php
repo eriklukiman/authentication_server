@@ -3,6 +3,7 @@
 define('LUKIMAN_NAMESPACE_PREFIX', 'Lukiman\AuthServer');
 
 define('UPLOAD_FILE_DIR', ROOT_PATH . 'images/');
+define('PHOTO_CACHE_TTL', 3600 * 12); // Cache photos for 12 hours (3600 seconds * 12)
 
 // Database Configuration
 define('DB_HOST', '127.0.0.1');
