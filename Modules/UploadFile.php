@@ -96,6 +96,11 @@ class UploadFile extends M2MBase {
             throw new ServerErrorException('No file uploaded', 400);
         }
 
+        $filename = $file->getClientFilename();
+        if (empty($filename)) {
+            throw new ServerErrorException('Cannot determine uploaded file name, perhaps you need to update client app', 400);
+        }
+
         $clientMediaType = $file->getClientMediaType();
         if ($clientMediaType && !in_array($clientMediaType, $allowedTypes, true)) {
             throw new ServerErrorException('Invalid file type', 400);
@@ -111,6 +116,12 @@ class UploadFile extends M2MBase {
             $extension = $clientExtension;
         }
 
+        $ulidFilename = substr($filename,0, strlen($filename) - strlen('.' . $extension));
+
+        if (!isValidUlid($ulidFilename)) {
+            $filename = $this->randomString(40) . '.' . $extension;
+        }
+
         if ($file->getError() !== UPLOAD_ERR_OK) {
             throw new UploadException($file->getError());
         }
@@ -118,9 +129,7 @@ class UploadFile extends M2MBase {
             throw new ServerErrorException('File size exceeds limit', 400);
         }
 
-        $forceReplace = filter_var($properties['forceReplace'] ?? false, FILTER_VALIDATE_BOOLEAN);
         $path = $this->normalizeRelativePath((string) ($properties['path'] ?? ''));
-        $filename = $this->randomString(40) . '.' . $extension;
         $filename = basename($filename);
 
         $targetDir = $baseDir . ($path === '' ? '' : $path . '/');
@@ -136,21 +145,17 @@ class UploadFile extends M2MBase {
         }
 
         if (is_file($fullPath)) {
-            if (!$forceReplace) {
-                while (is_file($fullPath)) {
-                    $filename = $this->randomString(5) . '_' . $filename;
-                    $fullPath = $targetDir . $filename;
-                    $urlPath = $this->urlSafe(preg_replace('/\/{2,}/', '/', $baseDir . '/' . ($path === '' ? '' : $path . '/') . $filename));
-                    $urlPath = str_replace($baseDir,'', $urlPath);
-                }
-            } else if (!unlink($fullPath)) {
-                throw new ServerErrorException('Failed to replace existing file', 500);
+            Logger::info('File already exists: ' . $fullPath);
+            if (!unlink($fullPath)) {
+                Logger::error('Failed to delete existing file: ' . $fullPath);
+                throw new ServerErrorException('Failed to delete existing file', 500);
             }
         }
 
         try {
             $file->moveTo($fullPath);
         } catch (\Throwable $e) {
+            Logger::error('Failed to move uploaded file: ' . $e);
             throw new ServerErrorException('File upload failed', 500);
         }
 
